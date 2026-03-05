@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>todo-bmad — Design Directions</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #F4F4F5;
+    color: #09090B;
+    padding: 32px 16px;
+  }
+
+  h1 {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #09090B;
+  }
+  .subtitle {
+    font-size: 13px;
+    color: #71717A;
+    margin-bottom: 40px;
+  }
+
+  .directions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 32px;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  .direction-card {
+    background: #fff;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+  }
+  .direction-label {
+    padding: 12px 16px;
+    background: #FAFAFA;
+    border-bottom: 1px solid #E4E4E7;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #71717A;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .direction-label .tag {
+    background: #E4E4E7;
+    border-radius: 4px;
+    padding: 2px 7px;
+    font-size: 10px;
+    color: #52525B;
+  }
+  .mockup {
+    height: 520px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* ── Shared todo item primitives ── */
+  .todo-list { flex: 1; overflow-y: auto; }
+  .todo-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .todo-item:hover { background: #F4F4F5; }
+  .todo-text { flex: 1; font-size: 14px; line-height: 1.4; }
+  .todo-meta { font-size: 11px; color: #A1A1AA; }
+  .todo-delete {
+    opacity: 0;
+    color: #A1A1AA;
+    cursor: pointer;
+    font-size: 14px;
+    padding: 4px;
+    border-radius: 4px;
+    transition: opacity 0.15s, color 0.15s;
+    flex-shrink: 0;
+  }
+  .todo-item:hover .todo-delete { opacity: 1; }
+  .todo-item:hover .todo-delete:hover { color: #EF4444; }
+
+  /* Checkbox styles */
+  .cb {
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    border: 1.5px solid #D4D4D8;
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    transition: border-color 0.15s;
+  }
+  .cb-square {
+    width: 16px; height: 16px;
+    border-radius: 3px;
+    border: 1.5px solid #D4D4D8;
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .cb-checked, .cb-square-checked {
+    background: #09090B;
+    border-color: #09090B;
+  }
+  .cb svg, .cb-square svg { display: none; }
+  .cb-checked svg, .cb-square-checked svg { display: block; }
+  .todo-item:hover .cb { border-color: #A1A1AA; }
+
+  .completed-text { text-decoration: line-through; color: #A1A1AA; }
+  .section-label {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: #A1A1AA;
+    padding: 8px 16px 4px;
+  }
+  .divider { border: none; border-top: 1px solid #E4E4E7; margin: 0; }
+
+  /* Input bar */
+  .input-bar {
+    display: flex;
+    align-items: center;
+    border-top: 1px solid #E4E4E7;
+    background: #FAFAFA;
+  }
+  .input-field {
+    flex: 1;
+    border: none;
+    background: transparent;
+    font-size: 14px;
+    font-family: inherit;
+    color: #09090B;
+    outline: none;
+  }
+  .input-field::placeholder { color: #A1A1AA; }
+  .add-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #71717A;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    transition: color 0.15s, background 0.15s;
+    flex-shrink: 0;
+  }
+  .add-btn:hover { color: #09090B; background: #E4E4E7; }
+
+  /* Theme toggle */
+  .theme-toggle {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #71717A;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    border-radius: 4px;
+    transition: color 0.15s;
+  }
+  .theme-toggle:hover { color: #09090B; }
+
+  /* ─────────────────────────────────────
+     DIRECTION 1 — Minimal Bare
+     No section labels, thin divider only
+  ───────────────────────────────────── */
+  .d1 { background: #FFFFFF; }
+  .d1 .header { padding: 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #E4E4E7; }
+  .d1 .header h2 { font-size: 15px; font-weight: 600; color: #09090B; }
+  .d1 .todo-item { padding: 12px 16px; }
+  .d1 .input-bar { padding: 10px 16px; }
+
+  /* ─────────────────────────────────────
+     DIRECTION 2 — Labeled Sections
+     Explicit "Completed" / "Active" labels
+  ───────────────────────────────────── */
+  .d2 { background: #FFFFFF; }
+  .d2 .header { padding: 16px; display: flex; justify-content: space-between; align-items: center; }
+  .d2 .header h2 { font-size: 15px; font-weight: 600; }
+  .d2 .todo-item { padding: 11px 16px; }
+  .d2 .input-bar { padding: 10px 16px; }
+
+  /* ─────────────────────────────────────
+     DIRECTION 3 — Inset Card Layout
+     Content in a raised card on bg
+  ───────────────────────────────────── */
+  .d3 { background: #F4F4F5; }
+  .d3 .inner { margin: 12px; border-radius: 10px; background: #FFFFFF; border: 1px solid #E4E4E7; display: flex; flex-direction: column; height: calc(100% - 24px); overflow: hidden; }
+  .d3 .header { padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #F4F4F5; }
+  .d3 .header h2 { font-size: 14px; font-weight: 600; }
+  .d3 .todo-list { flex: 1; overflow-y: auto; }
+  .d3 .todo-item { padding: 10px 16px; }
+  .d3 .input-bar { padding: 10px 16px; border-top: 1px solid #F4F4F5; }
+
+  /* ─────────────────────────────────────
+     DIRECTION 4 — Compact Density
+     Tighter rows, inline timestamp
+  ───────────────────────────────────── */
+  .d4 { background: #FFFFFF; }
+  .d4 .header { padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #E4E4E7; }
+  .d4 .header h2 { font-size: 14px; font-weight: 600; }
+  .d4 .todo-item { padding: 8px 16px; }
+  .d4 .input-bar { padding: 8px 16px; }
+  .d4 .todo-text-row { display: flex; align-items: baseline; gap: 8px; flex: 1; overflow: hidden; }
+  .d4 .inline-meta { font-size: 11px; color: #A1A1AA; white-space: nowrap; flex-shrink: 0; }
+
+  /* ─────────────────────────────────────
+     DIRECTION 5 — Square Checkbox, No Header
+     Maximise list space, minimal top chrome
+  ───────────────────────────────────── */
+  .d5 { background: #FFFFFF; }
+  .d5 .header { padding: 12px 16px 8px; display: flex; justify-content: flex-end; align-items: center; }
+  .d5 .todo-item { padding: 11px 16px; }
+  .d5 .input-bar { padding: 10px 16px; }
+
+  /* ─────────────────────────────────────
+     DIRECTION 6 — Dark mode default
+     Same as D2 but dark
+  ───────────────────────────────────── */
+  .d6 {
+    background: #09090B;
+    color: #FAFAFA;
+  }
+  .d6 .header { padding: 16px; display: flex; justify-content: space-between; align-items: center; }
+  .d6 .header h2 { font-size: 15px; font-weight: 600; color: #FAFAFA; }
+  .d6 .todo-item { padding: 11px 16px; }
+  .d6 .todo-item:hover { background: #18181B; }
+  .d6 .todo-text { color: #FAFAFA; }
+  .d6 .todo-meta { color: #52525B; }
+  .d6 .completed-text { color: #52525B; }
+  .d6 .section-label { color: #52525B; }
+  .d6 .divider { border-top-color: #27272A; }
+  .d6 .cb { border-color: #3F3F46; }
+  .d6 .cb-checked { background: #FAFAFA; border-color: #FAFAFA; }
+  .d6 .cb-checked svg path { stroke: #09090B; }
+  .d6 .todo-item:hover .cb { border-color: #71717A; }
+  .d6 .todo-delete { color: #3F3F46; }
+  .d6 .todo-item:hover .todo-delete:hover { color: #EF4444; }
+  .d6 .input-bar { background: #09090B; border-top-color: #27272A; }
+  .d6 .input-field { color: #FAFAFA; }
+  .d6 .input-field::placeholder { color: #52525B; }
+  .d6 .add-btn { color: #52525B; }
+  .d6 .add-btn:hover { color: #FAFAFA; background: #27272A; }
+  .d6 .theme-toggle { border-color: #27272A; color: #52525B; }
+  .d6 .theme-toggle:hover { border-color: #3F3F46; color: #FAFAFA; }
+
+  /* Empty state */
+  .empty-state {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #D4D4D8;
+    font-size: 13px;
+  }
+
+  /* Error banner */
+  .error-banner {
+    padding: 8px 16px;
+    font-size: 12px;
+    color: #EF4444;
+    background: #FFF1F2;
+    border-bottom: 1px solid #FECDD3;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .d6 .error-banner { background: #1C0A0A; border-bottom-color: #450A0A; }
+
+  /* Loading */
+  .loading-row {
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .skeleton {
+    height: 12px;
+    border-radius: 6px;
+    background: #E4E4E7;
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+  .d6 .skeleton { background: #27272A; }
+
+  /* SVG icons inline */
+  .icon-check { width: 10px; height: 10px; }
+  .icon-trash { width: 14px; height: 14px; }
+  .icon-plus { width: 16px; height: 16px; }
+  .icon-sun { width: 18px; height: 18px; }
+  .icon-moon { width: 18px; height: 18px; }
+</style>
+</head>
+<body>
+
+<h1>todo-bmad — Design Directions</h1>
+<p class="subtitle">6 visual explorations. All use the same foundation: pure neutral palette, system font, airy spacing, bottom input, completed todos at top.</p>
+
+<div class="directions-grid">
+
+  <!-- ── DIRECTION 1: Minimal Bare ── -->
+  <div class="direction-card">
+    <div class="direction-label">
+      Direction 1 — Minimal Bare
+      <span class="tag">Light · No labels</span>
+    </div>
+    <div class="mockup d1">
+      <div class="header">
+        <h2>My Tasks</h2>
+        <button class="theme-toggle">
+          <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </button>
+      </div>
+      <div class="todo-list">
+        <!-- Completed -->
+        <div class="todo-item">
+          <div class="cb cb-checked"><svg class="icon-check" viewBox="0 0 10 10" fill="none"><path d="M1.5 5L4 7.5L8.5 2.5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <span class="todo-text completed-text">Buy groceries</span>
+          <span class="todo-delete"><svg class="icon-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="3,6 5,6 21,6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></span>
+        </div>
+        <div class="todo-item">
+          <div class="cb cb-checked"><svg class="icon-check" viewBox="0 0 10 10" fill="none"><path d="M1.5 5L4 7.5L8.5 2.5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <span class="todo-text completed-text">Call the dentist</span>
+          <span class="todo-delete"><svg class="icon-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="3,6 5,6 21,6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></span>
+        </div>
+        <hr class="divider">
+        <!-- Active -->
+        <div class="todo-item">
+          <div class="cb"></div>
+          <div style="flex:1">
+            <div class="todo-text">Finish the UX spec document</div>
+            <div class="todo-meta">Today, 9:14 AM</div>
+          </div>
+          <span class="todo-delete"><svg class="icon-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="3,6 5,6 21,6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></span>
+        </div>
+        <div class="todo-item">
+          <div class="cb"></div>
+          <div style="flex:1">
+            <div class="todo-text">Review pull request #42</div>
+            <div class="todo-meta">Today, 10:02 AM</div>
+          </div>
+          <span class="todo-delete"><svg class="icon-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="3,6 5,6 21,6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></span>
+        </div>
+        <div class="todo-item">
+          <div class="cb"></div>
+          <div style="flex:1">
+            <div class="todo-text">Book flights for March</div>
+            <div class="todo-meta">Today, 11:30 AM</div>
+          </div>
+          <span class="todo-delete"><svg class="icon-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="3,6 5,6 21,6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></span>
+        </div>
+        <div class="todo-item">
+          <div class="cb"></div>
+          <div style="flex:1">
+            <div class="todo-text">Write retrospective notes</div>
+            <div class="todo-meta">Today, 2:45 PM</div>
+          </div>
+          <span class="todo-delete"><svg class="icon-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="3,6 5,6 21,6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></span>
+        </div>
+      </div>
+      <div class="input-bar">
+        <input class="input-field" style="padding: 10px 0 10px 0;" placeholder="Add a task…" readonly>
+        <button class="add-btn" style="padding: 8px;">
+          <svg class="icon-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── DIRECTION 2: Labeled Sections ── -->
+  <div class="direction-card">
+    <div class="direction-label">
+      Direction 2 — Labeled Sections
+      <span class="tag">Light · Section labels</span>
+    </div>
+    <div class="mockup d2">
+      <div class="header">
+        <h2>My Tasks</h2>
+        <button class="theme-toggle">
+          <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </button>
+      </div>
+      <div class="todo-list">
+        <div class="section-label">Completed</div>
+        <div class="todo-item">
+          <div class="cb cb-checked"><svg class="icon-check" viewBox="0 0 10 10" fill="none"><path d="M1.5 5L4 7.5L8.5 2.5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <span class="todo-text completed-text">Buy groceries</span>
+          <span class="todo-delete"><svg class="icon-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="3,6 5,6 21,6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></span>
+        </div>
+        <div class="todo-item">
+          <div class="cb cb-checked"><svg class="icon-check" viewBox="0 0 10 10" fill="none"><path d="M1.5 5L4 7.5L8.5 2.5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <span class="todo-text completed-text">Call the dentist</span>
+          <span class="todo-delete"><svg class="icon-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="3,6 5,6 21,6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></span>
+        </div>
+        <div class="section-label" style="margin-top:4px;">Active</div>
+        <div class="todo-item">
+          <div class="cb"></div>
+          <div style="flex:1">
+            <div class="todo-text">Finish the UX spec document</div>
+            <div class="todo-meta">Today, 9:14 AM</div>
+          </div>
+          <span class="todo-delete"><svg class="icon-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="3,6 5,6 21,6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></span>
+        </div>
+        <div class="todo-item">
+          <div class="cb"></div>
+          <div style="flex:1">
+            <div class="todo-text">Review pull request #42</div>
+            <div class="todo-meta">Today, 10:02 AM</div>
+          </div>
+          <span class="todo-delete"><svg class="icon-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="3,6 5,6 21,6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></span>
+        </div>
+        <div class="todo-item">
+          <div class="cb"></div>
+          <div style="flex:1">
+            <div class="todo-text">Book flights for March</div>
+            <div class="todo-meta">Today, 11:30 AM</div>
+          </div>
+          <span class="todo-delete"><svg class="icon-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="3,6 5,6 21,6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></span>
+        </div>
+        <div class="todo-item">
+          <div class="cb"></div>
+          <div style="flex:1">
+            <div class="todo-text">Write retrospective notes</div>
+            <div class="todo-meta">Today, 2:45 PM</div>
+          </div>
+          <span class="todo-delete"><svg class="icon-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="3,6 5,6 21,6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></span>
+        </div>
+      </div>
+      <div class="input-bar">
+        <input class="input-field" style="padding: 10px 0 10px 0;" placeholder="Add a task…" readonly>
+        <button class="add-btn" style="padding: 8px;">
+          <svg class="icon-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── DIRECTION 3: Inset Card Layout ── -->
+  <div class="direction-card">
+    <div class="direction-label">
+      Direction 3 — Inset Card
+      <span class="tag">Light · Raised card</span>
+    </div>
+    <div class="mockup d3">
+      <div class="inner">
+        <div class="header">
+          <h2>My Tasks</h2>
+          <button class="theme-toggle">
+            <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+          </button>
+        </div>
+        <div class="todo-list">
+          <div class="section-label">Completed</div>
+          <div class="todo-item">
+            <div class="cb cb-checked"><svg class="icon-check" viewBox="0 0 10 10" fill="none"><path d="M1.5 5L4 7.5L8.5 2.5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <span class="todo-text completed-text">Buy groceries</span>
+            <span class="todo-delete"><svg class="icon-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="3,6 5,6 21,6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></span>
+          </div>
+          <div class="todo-item">
+            <div class="cb cb-checked"><svg class="icon-check" viewBox="0 0 10 10" fill="none"><path d="M1.5 5L4 7.5L8.5 2.5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <span class="todo-text completed-text">Call the dentist</span>
+            <span class="todo-delete"><svg class="icon-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="3,6 5,6 21,6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></span>
+          </div>
+          <div class="section-label" style="margin-top:4px;">Active</div>
+          <div class="todo-item">
+            <div class="cb"></div>
+            <div style="flex:1">
+              <div class="todo-text">Finish the UX spec document</div>
+              <div class="todo-meta">Today, 9:14 AM</div>
+            </div>
+            <span class="todo-delete"><svg class="icon-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="3,6 5,6 21,6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></span>
+          </div>
+          <div class="todo-item">
+            <div class="cb"></div>
+            <div style="flex:1">
+              <div class="todo-text">Review pull request #42</div>
+              <div class="todo-meta">Today, 10:02 AM</div>
+            </div>
+            <span class="todo-delete"><svg class="icon-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="3,6 5,6 21,6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></span>
+          </div>
+          <div class="todo-item">
+            <div class="cb"></div>
+            <div style="flex:1">
+              <div class="todo-text">Book flights for March</div>
+              <div class="todo-meta">Today, 11:30 AM</div>
+            </div>
+            <span class="todo-delete"><svg class="icon-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="3,6 5,6 21,6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></span>
+          </div>
+        </div>
+        <div class="input-bar">
+          <input class="input-field" style="padding: 10px 0 10px 0;" placeholder="Add a task…" readonly>
+          <button class="add-btn" style="padding: 8px;">
+            <svg class="icon-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── DIRECTION 4: Compact / Inline timestamp ── -->
+  <div class="direction-card">
+    <div class="direction-label">
+      Direction 4 — Compact + Inline timestamp
+      <span class="tag">Light · Dense</span>
+    </div>
+    <div class="mockup d4">
+      <div class="header">
+        <h2>My Tasks</h2>
+        <button class="theme-toggle">
+          <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </button>
+      </div>
+      <div class="todo-list">
+        <div class="section-label">Completed</div>
+        <div class="todo-item">
+          <div class="cb cb-checked"><svg class="icon-check" viewBox="0 0 10 10" fill="none"><path d="M1.5 5L4 7.5L8.5 2.5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <div class="todo-text-row"><span class="todo-text completed-text">Buy groceries</span></div>
+          <span class="todo-delete"><svg class="icon-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="3,6 5,6 21,6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></span>
+        </div>
+        <div class="todo-item">
+          <div class="cb cb-checked"><svg class="icon-check" viewBox="0 0 10 10" fill="none"><path d="M1.5 5L4 7.5L8.5 2.5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <div class="todo-text-row"><span class="todo-text completed-text">Call the dentist</span></div>
+          <span class="todo-delete"><svg class="icon-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="3,6 5,6 21,6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></span>
+        </div>
+        <div class="section-label" style="margin-top:2px;">Active</div>
+        <div class="todo-item">
+          <div class="cb"></div>
+          <div class="todo-text-row">
+            <span class="todo-text">Finish the UX spec document</span>
+            <span class="inline-meta">9:14 AM</span>
+          </div>
+          <span class="todo-delete"><svg class="icon-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="3,6 5,6 21,6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></span>
+        </div>
+        <div class="todo-item">
+          <div class="cb"></div>
+          <div class="todo-text-row">
+            <span class="todo-text">Review pull request #42</span>
+            <span class="inline-meta">10:02 AM</span>
+          </div>
+          <span class="todo-delete"><svg class="icon-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="3,6 5,6 21,6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></span>
+        </div>
+        <div class="todo-item">
+          <div class="cb"></div>
+          <div class="todo-text-row">
+            <span class="todo-text">Book flights for March</span>
+            <span class="inline-meta">11:30 AM</span>
+          </div>
+          <span class="todo-delete"><svg class="icon-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="3,6 5,6 21,6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></span>
+        </div>
+        <div class="todo-item">
+          <div class="cb"></div>
+          <div class="todo-text-row">
+            <span class="todo-text">Write retrospective notes</span>
+            <span class="inline-meta">2:45 PM</span>
+          </div>
+          <span class="todo-delete"><svg class="icon-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="3,6 5,6 21,6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></span>
+        </div>
+        <div class="todo-item">
+          <div class="cb"></div>
+          <div class="todo-text-row">
+            <span class="todo-text">Update the README</span>
+            <span class="inline-meta">3:20 PM</span>
+          </div>
+          <span class="todo-delete"><svg class="icon-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="3,6 5,6 21,6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></span>
+        </div>
+      </div>
+      <div class="input-bar">
+        <input class="input-field" style="padding:8px 0;" placeholder="Add a task…" readonly>
+        <button class="add-btn" style="padding: 6px;">
+          <svg class="icon-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── DIRECTION 5: Square checkbox, no title ── -->
+  <div class="direction-card">
+    <div class="direction-label">
+      Direction 5 — Square checkbox, minimal header
+      <span class="tag">Light · No title</span>
+    </div>
+    <div class="mockup d5">
+      <div class="header">
+        <button class="theme-toggle">
+          <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </button>
+      </div>
+      <div class="todo-list">
+        <div class="section-label">Completed</div>
+        <div class="todo-item">
+          <div class="cb-square cb-square-checked"><svg class="icon-check" viewBox="0 0 10 10" fill="none"><path d="M1.5 5L4 7.5L8.5 2.5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <span class="todo-text completed-text">Buy groceries</span>
+          <span class="todo-delete"><svg class="icon-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="3,6 5,6 21,6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></span>
+        </div>
+        <div class="todo-item">
+          <div class="cb-square cb-square-checked"><svg class="icon-check" viewBox="0 0 10 10" fill="none"><path d="M1.5 5L4 7.5L8.5 2.5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <span class="todo-text completed-text">Call the dentist</span>
+          <span class="todo-delete"><svg class="icon-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="3,6 5,6 21,6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></span>
+        </div>
+        <div class="section-label" style="margin-top:4px;">Active</div>
+        <div class="todo-item">
+          <div class="cb-square"></div>
+          <div style="flex:1">
+            <div class="todo-text">Finish the UX spec document</div>
+            <div class="todo-meta">Today, 9:14 AM</div>
+          </div>
+          <span class="todo-delete"><svg class="icon-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="3,6 5,6 21,6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></span>
+        </div>
+        <div class="todo-item">
+          <div class="cb-square"></div>
+          <div style="flex:1">
+            <div class="todo-text">Review pull request #42</div>
+            <div class="todo-meta">Today, 10:02 AM</div>
+          </div>
+          <span class="todo-delete"><svg class="icon-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="3,6 5,6 21,6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></span>
+        </div>
+        <div class="todo-item">
+          <div class="cb-square"></div>
+          <div style="flex:1">
+            <div class="todo-text">Book flights for March</div>
+            <div class="todo-meta">Today, 11:30 AM</div>
+          </div>
+          <span class="todo-delete"><svg class="icon-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="3,6 5,6 21,6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></span>
+        </div>
+        <div class="todo-item">
+          <div class="cb-square"></div>
+          <div style="flex:1">
+            <div class="todo-text">Write retrospective notes</div>
+            <div class="todo-meta">Today, 2:45 PM</div>
+          </div>
+          <span class="todo-delete"><svg class="icon-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="3,6 5,6 21,6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></span>
+        </div>
+      </div>
+      <div class="input-bar">
+        <input class="input-field" style="padding: 10px 0;" placeholder="Add a task…" readonly>
+        <button class="add-btn" style="padding: 8px;">
+          <svg class="icon-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── DIRECTION 6: Dark mode ── -->
+  <div class="direction-card">
+    <div class="direction-label">
+      Direction 6 — Dark mode
+      <span class="tag">Dark · Labeled sections</span>
+    </div>
+    <div class="mockup d6">
+      <div class="header">
+        <h2>My Tasks</h2>
+        <button class="theme-toggle">
+          <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        </button>
+      </div>
+      <div class="todo-list">
+        <div class="section-label">Completed</div>
+        <div class="todo-item">
+          <div class="cb cb-checked"><svg class="icon-check" viewBox="0 0 10 10" fill="none"><path d="M1.5 5L4 7.5L8.5 2.5" stroke="#09090B" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <span class="todo-text completed-text">Buy groceries</span>
+          <span class="todo-delete"><svg class="icon-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="3,6 5,6 21,6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></span>
+        </div>
+        <div class="todo-item">
+          <div class="cb cb-checked"><svg class="icon-check" viewBox="0 0 10 10" fill="none"><path d="M1.5 5L4 7.5L8.5 2.5" stroke="#09090B" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <span class="todo-text completed-text">Call the dentist</span>
+          <span class="todo-delete"><svg class="icon-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="3,6 5,6 21,6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></span>
+        </div>
+        <div class="section-label" style="margin-top:4px;">Active</div>
+        <div class="todo-item">
+          <div class="cb"></div>
+          <div style="flex:1">
+            <div class="todo-text">Finish the UX spec document</div>
+            <div class="todo-meta">Today, 9:14 AM</div>
+          </div>
+          <span class="todo-delete"><svg class="icon-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="3,6 5,6 21,6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></span>
+        </div>
+        <div class="todo-item">
+          <div class="cb"></div>
+          <div style="flex:1">
+            <div class="todo-text">Review pull request #42</div>
+            <div class="todo-meta">Today, 10:02 AM</div>
+          </div>
+          <span class="todo-delete"><svg class="icon-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="3,6 5,6 21,6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></span>
+        </div>
+        <div class="todo-item">
+          <div class="cb"></div>
+          <div style="flex:1">
+            <div class="todo-text">Book flights for March</div>
+            <div class="todo-meta">Today, 11:30 AM</div>
+          </div>
+          <span class="todo-delete"><svg class="icon-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="3,6 5,6 21,6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></span>
+        </div>
+        <div class="todo-item">
+          <div class="cb"></div>
+          <div style="flex:1">
+            <div class="todo-text">Write retrospective notes</div>
+            <div class="todo-meta">Today, 2:45 PM</div>
+          </div>
+          <span class="todo-delete"><svg class="icon-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="3,6 5,6 21,6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></span>
+        </div>
+      </div>
+      <div class="input-bar">
+        <input class="input-field" style="padding: 10px 0;" placeholder="Add a task…" readonly>
+        <button class="add-btn" style="padding: 8px;">
+          <svg class="icon-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── DIRECTION 7: Empty state ── -->
+  <div class="direction-card">
+    <div class="direction-label">
+      Direction 7 — Empty state
+      <span class="tag">Light · No todos</span>
+    </div>
+    <div class="mockup d2">
+      <div class="header">
+        <h2>My Tasks</h2>
+        <button class="theme-toggle">
+          <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </button>
+      </div>
+      <div class="empty-state">Add your first task below</div>
+      <div class="input-bar">
+        <input class="input-field" style="padding: 10px 0;" placeholder="Add a task…" readonly>
+        <button class="add-btn" style="padding: 8px;">
+          <svg class="icon-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── DIRECTION 8: Error + Loading states ── -->
+  <div class="direction-card">
+    <div class="direction-label">
+      Direction 8 — Error &amp; Loading states
+      <span class="tag">Light · Edge cases</span>
+    </div>
+    <div class="mockup d2" style="gap:0">
+      <div class="header">
+        <h2>My Tasks</h2>
+        <button class="theme-toggle">
+          <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </button>
+      </div>
+      <div class="error-banner">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        Network issue — check your connection
+      </div>
+      <div class="todo-list" style="opacity:0.5;">
+        <div class="loading-row">
+          <div class="cb" style="border-color:#E4E4E7; flex-shrink:0;"></div>
+          <div style="flex:1; display:flex; flex-direction:column; gap:6px;">
+            <div class="skeleton" style="width:65%;"></div>
+            <div class="skeleton" style="width:30%;"></div>
+          </div>
+        </div>
+        <div class="loading-row">
+          <div class="cb" style="border-color:#E4E4E7; flex-shrink:0;"></div>
+          <div style="flex:1; display:flex; flex-direction:column; gap:6px;">
+            <div class="skeleton" style="width:50%;"></div>
+            <div class="skeleton" style="width:25%;"></div>
+          </div>
+        </div>
+        <div class="loading-row">
+          <div class="cb" style="border-color:#E4E4E7; flex-shrink:0;"></div>
+          <div style="flex:1; display:flex; flex-direction:column; gap:6px;">
+            <div class="skeleton" style="width:75%;"></div>
+            <div class="skeleton" style="width:28%;"></div>
+          </div>
+        </div>
+      </div>
+      <div class="input-bar" style="opacity:0.5;">
+        <input class="input-field" style="padding: 10px 0;" placeholder="Add a task…" readonly disabled>
+        <button class="add-btn" style="padding: 8px;" disabled>
+          <svg class="icon-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<style>
+  /* ── Chosen direction styles ── */
+  .chosen-heading {
+    margin-top: 56px;
+    margin-bottom: 8px;
+    font-size: 20px;
+    font-weight: 600;
+    color: #09090B;
+  }
+  .chosen-subtitle {
+    font-size: 13px;
+    color: #71717A;
+    margin-bottom: 32px;
+  }
+  .chosen-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 32px;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  /* Dark mode tokens — revised */
+  .dk { background: #18181B; color: #FAFAFA; }
+  .dk .header { padding: 16px; display: flex; justify-content: space-between; align-items: center; }
+  .dk .header h2 { font-size: 15px; font-weight: 600; color: #FAFAFA; }
+  .dk .todo-item { padding: 11px 16px; }
+  .dk .todo-item:hover { background: #27272A; }
+  .dk .todo-text { color: #FAFAFA; }
+  .dk .todo-meta { color: #71717A; }
+  .dk .completed-text { color: #71717A; }
+  .dk .section-label { color: #71717A; }
+  .dk .divider { border-top-color: #3F3F46; }
+  .dk .cb { border-color: #52525B; }
+  .dk .cb-checked { background: #FAFAFA; border-color: #FAFAFA; }
+  .dk .cb-checked svg path { stroke: #18181B; }
+  .dk .todo-item:hover .cb { border-color: #A1A1AA; }
+  .dk .todo-delete { color: #52525B; }
+  .dk .todo-item:hover .todo-delete { opacity: 1; }
+  .dk .todo-item:hover .todo-delete:hover { color: #EF4444; }
+  .dk .input-row { padding: 11px 16px; display: flex; align-items: center; gap: 12px; min-height: 58px; }
+  .dk .input-field-inline { background: transparent; border: none; outline: none; font-size: 14px; font-family: inherit; color: #FAFAFA; flex: 1; }
+  .dk .input-field-inline::placeholder { color: #52525B; }
+  .dk .cb-placeholder { border-color: #3F3F46; }
+  .dk .theme-toggle { color: #A1A1AA; }
+  .dk .theme-toggle:hover { color: #FAFAFA; }
+
+  /* Light chosen direction */
+  .lt { background: #FFFFFF; }
+  .lt .header { padding: 16px; display: flex; justify-content: space-between; align-items: center; }
+  .lt .header h2 { font-size: 15px; font-weight: 600; }
+  .lt .todo-item { padding: 11px 16px; }
+  .lt .input-row { padding: 11px 16px; display: flex; align-items: center; gap: 12px; min-height: 58px; }
+  .lt .input-field-inline { background: transparent; border: none; outline: none; font-size: 14px; font-family: inherit; color: #09090B; flex: 1; }
+  .lt .input-field-inline::placeholder { color: #A1A1AA; }
+  .lt .cb-placeholder { border-color: #D4D4D8; opacity: 0.5; }
+</style>
+
+<h2 class="chosen-heading">Chosen Direction</h2>
+<p class="chosen-subtitle">
+  Labeled sections · Round checkbox · "My Tasks" title + theme toggle · Inline input as last list item · Revised dark mode contrast
+</p>
+
+<div class="chosen-grid">
+
+  <!-- Chosen: Light mode -->
+  <div class="direction-card">
+    <div class="direction-label">
+      Chosen — Light mode
+      <span class="tag">Final direction</span>
+    </div>
+    <div class="mockup lt">
+      <div class="header">
+        <h2>My Tasks</h2>
+        <button class="theme-toggle">
+          <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </button>
+      </div>
+      <div class="todo-list">
+        <div class="section-label">Completed</div>
+        <div class="todo-item">
+          <div class="cb cb-checked"><svg class="icon-check" viewBox="0 0 10 10" fill="none"><path d="M1.5 5L4 7.5L8.5 2.5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <span class="todo-text completed-text">Buy groceries</span>
+          <span class="todo-delete"><svg class="icon-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="3,6 5,6 21,6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></span>
+        </div>
+        <div class="todo-item">
+          <div class="cb cb-checked"><svg class="icon-check" viewBox="0 0 10 10" fill="none"><path d="M1.5 5L4 7.5L8.5 2.5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <span class="todo-text completed-text">Call the dentist</span>
+          <span class="todo-delete"><svg class="icon-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="3,6 5,6 21,6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></span>
+        </div>
+        <div class="section-label" style="margin-top:4px;">Active</div>
+        <div class="todo-item">
+          <div class="cb"></div>
+          <div style="flex:1">
+            <div class="todo-text">Finish the UX spec document</div>
+            <div class="todo-meta">Today, 9:14 AM</div>
+          </div>
+          <span class="todo-delete"><svg class="icon-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="3,6 5,6 21,6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></span>
+        </div>
+        <div class="todo-item">
+          <div class="cb"></div>
+          <div style="flex:1">
+            <div class="todo-text">Review pull request #42</div>
+            <div class="todo-meta">Today, 10:02 AM</div>
+          </div>
+          <span class="todo-delete"><svg class="icon-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="3,6 5,6 21,6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></span>
+        </div>
+        <div class="todo-item">
+          <div class="cb"></div>
+          <div style="flex:1">
+            <div class="todo-text">Book flights for March</div>
+            <div class="todo-meta">Today, 11:30 AM</div>
+          </div>
+          <span class="todo-delete"><svg class="icon-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="3,6 5,6 21,6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></span>
+        </div>
+        <!-- Inline input row — no fixed bar -->
+        <div class="input-row lt">
+          <div class="cb cb-placeholder"></div>
+          <input class="input-field-inline" placeholder="Add a task…" readonly>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chosen: Dark mode (revised contrast) -->
+  <div class="direction-card">
+    <div class="direction-label">
+      Chosen — Dark mode (revised contrast)
+      <span class="tag">Final direction</span>
+    </div>
+    <div class="mockup dk">
+      <div class="header">
+        <h2>My Tasks</h2>
+        <button class="theme-toggle">
+          <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        </button>
+      </div>
+      <div class="todo-list">
+        <div class="section-label">Completed</div>
+        <div class="todo-item">
+          <div class="cb cb-checked"><svg class="icon-check" viewBox="0 0 10 10" fill="none"><path d="M1.5 5L4 7.5L8.5 2.5" stroke="#18181B" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <span class="todo-text completed-text">Buy groceries</span>
+          <span class="todo-delete"><svg class="icon-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="3,6 5,6 21,6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></span>
+        </div>
+        <div class="todo-item">
+          <div class="cb cb-checked"><svg class="icon-check" viewBox="0 0 10 10" fill="none"><path d="M1.5 5L4 7.5L8.5 2.5" stroke="#18181B" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <span class="todo-text completed-text">Call the dentist</span>
+          <span class="todo-delete"><svg class="icon-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="3,6 5,6 21,6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></span>
+        </div>
+        <div class="section-label" style="margin-top:4px;">Active</div>
+        <div class="todo-item">
+          <div class="cb"></div>
+          <div style="flex:1">
+            <div class="todo-text">Finish the UX spec document</div>
+            <div class="todo-meta">Today, 9:14 AM</div>
+          </div>
+          <span class="todo-delete"><svg class="icon-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="3,6 5,6 21,6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></span>
+        </div>
+        <div class="todo-item">
+          <div class="cb"></div>
+          <div style="flex:1">
+            <div class="todo-text">Review pull request #42</div>
+            <div class="todo-meta">Today, 10:02 AM</div>
+          </div>
+          <span class="todo-delete"><svg class="icon-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="3,6 5,6 21,6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></span>
+        </div>
+        <div class="todo-item">
+          <div class="cb"></div>
+          <div style="flex:1">
+            <div class="todo-text">Book flights for March</div>
+            <div class="todo-meta">Today, 11:30 AM</div>
+          </div>
+          <span class="todo-delete"><svg class="icon-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="3,6 5,6 21,6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></span>
+        </div>
+        <!-- Inline input row -->
+        <div class="input-row dk">
+          <div class="cb cb-placeholder"></div>
+          <input class="input-field-inline" placeholder="Add a task…" readonly>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chosen: Empty state -->
+  <div class="direction-card">
+    <div class="direction-label">
+      Chosen — Empty state (no special case)
+      <span class="tag">First-run</span>
+    </div>
+    <div class="mockup lt">
+      <div class="header">
+        <h2>My Tasks</h2>
+        <button class="theme-toggle">
+          <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </button>
+      </div>
+      <div class="todo-list">
+        <div class="input-row lt">
+          <div class="cb cb-placeholder"></div>
+          <input class="input-field-inline" placeholder="Add a task…" readonly>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<p style="text-align:center; margin-top:48px; font-size:12px; color:#A1A1AA;">
+  Hover over todo rows to reveal delete icons &nbsp;·&nbsp; All directions use the same token system — pure neutral palette, system font
+</p>
+
+</body>
+</html>

@@ -1,0 +1,13 @@
+services:
+  db:
+    restart: always
+  backend:
+    restart: always
+  frontend:
+    build:
+      target: production
+    restart: always
+  proxy:
+    ports:
+      - "80:80"
+    restart: always
