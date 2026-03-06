@@ -286,7 +286,7 @@ So that I can immediately review my current tasks and their completion state.
 **Given** no todos exist in the database
 **When** the app loads
 **Then** neither the "Completed" nor "Active" section labels are visible
-**And** the `TodoInputRow` is the only element in the list area
+**And** the `TodoForm` is the only element in the list area
 
 **Given** todos exist but none are completed
 **When** the app renders
@@ -295,7 +295,7 @@ So that I can immediately review my current tasks and their completion state.
 
 **Given** todos exist but all are completed
 **When** the app renders
-**Then** the "Active" section label does not render (only `TodoInputRow` remains in the active area)
+**Then** the "Active" section label does not render (only `TodoForm` remains in the active area)
 
 **Given** a page reload with existing todos in the database
 **When** the app loads
@@ -312,7 +312,7 @@ So that I can capture tasks immediately without waiting for a server round-trip.
 **Acceptance Criteria:**
 
 **Given** the app is open
-**Then** a `TodoInputRow` is always visible at the bottom of the Active section with placeholder text "Add a task…"
+**Then** a `TodoForm` is always visible at the bottom of the Active section with placeholder text "Add a task…"
 **And** the input field has focus on page load
 
 **Given** the user types text in the input and presses Enter (or clicks the submit affordance)
@@ -365,7 +365,7 @@ So that I can track my progress and keep my list relevant.
 
 **Given** deleting the last todo
 **When** the optimistic delete fires
-**Then** the list shows only the `TodoInputRow` with no section labels
+**Then** the list shows only the `TodoForm` with no section labels
 
 **Given** the optimistic toggle or delete fails server-side
 **When** `onError` fires
@@ -395,7 +395,7 @@ So that I always understand what the app is doing and can continue working even 
 **When** the TanStack Query `isPending` state is true
 **Then** skeleton loading rows are shown at the same height as real todo rows (no layout shift)
 **And** the skeleton rows use a pulsing opacity animation
-**And** the `TodoInputRow` is visible and usable below the skeletons — the user can begin typing before the list loads
+**And** the `TodoForm` is visible and usable below the skeletons — the user can begin typing before the list loads
 
 **Given** the fetch completes successfully
 **When** data arrives
@@ -404,7 +404,7 @@ So that I always understand what the app is doing and can continue working even 
 **Given** `GET /todos` fails (network error or server error)
 **When** the error state is set
 **Then** an `ErrorBanner` renders below the header with a short label (e.g. "Network issue")
-**And** the `TodoInputRow` remains visible and usable
+**And** the `TodoForm` remains visible and usable
 **And** the `ErrorBanner` uses `role="alert"` so screen readers announce it immediately
 
 **Given** a create, toggle, or delete mutation fails server-side
@@ -444,7 +444,7 @@ So that I can manage my todos wherever I am.
 **Then** its effective touch target is at minimum 44×44px (WCAG 2.5.5)
 
 **Given** a mobile device in portrait orientation
-**When** the user taps the `TodoInputRow` input
+**When** the user taps the `TodoForm` input
 **Then** the virtual keyboard opens and the input remains visible (input row at bottom of active section naturally stays near keyboard)
 
 **Given** the app is tested on Chrome, Firefox, and Safari (latest stable)
@@ -493,7 +493,7 @@ So that the app feels at home on my device and is accessible to all users.
 **Given** the trash icon button on a todo item
 **Then** it has `aria-label="Delete todo"`
 
-**Given** the `TodoInputRow` input
+**Given** the `TodoForm` input
 **Then** it has `aria-label="Add a task"`
 
 **Given** the list structure in the DOM
