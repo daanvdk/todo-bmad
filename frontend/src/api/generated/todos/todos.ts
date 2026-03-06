@@ -54,7 +54,7 @@ export const getListTodosUrl = () => {
 
   
 
-  return `/todos`
+  return `/api/todos`
 }
 
 export const listTodos = async ( options?: RequestInit): Promise<listTodosResponse> => {
@@ -80,7 +80,7 @@ export const listTodos = async ( options?: RequestInit): Promise<listTodosRespon
 
 export const getListTodosQueryKey = () => {
     return [
-    `/todos`
+    `/api/todos`
     ] as const;
     }
 
@@ -177,7 +177,7 @@ export const getCreateTodoUrl = () => {
 
   
 
-  return `/todos`
+  return `/api/todos`
 }
 
 export const createTodo = async (todoCreate: TodoCreate, options?: RequestInit): Promise<createTodoResponse> => {
@@ -272,7 +272,7 @@ export const getUpdateTodoUrl = (todoId: number,) => {
 
   
 
-  return `/todos/${todoId}`
+  return `/api/todos/${todoId}`
 }
 
 export const updateTodo = async (todoId: number,
@@ -368,7 +368,7 @@ export const getDeleteTodoUrl = (todoId: number,) => {
 
   
 
-  return `/todos/${todoId}`
+  return `/api/todos/${todoId}`
 }
 
 export const deleteTodo = async (todoId: number, options?: RequestInit): Promise<deleteTodoResponse> => {

@@ -595,8 +595,8 @@ todo-bmad/
 │   │   │   ├── AppHeader.test.tsx
 │   │   │   ├── ErrorBanner.tsx       # Inline non-blocking error display (FR-11)
 │   │   │   ├── ErrorBanner.test.tsx
-│   │   │   ├── TodoInputRow.tsx      # Inline create form, Enter to submit (FR-01, FR-02)
-│   │   │   ├── TodoInputRow.test.tsx
+│   │   │   ├── TodoForm.tsx      # Inline create form, Enter to submit (FR-01, FR-02)
+│   │   │   ├── TodoForm.test.tsx
 │   │   │   ├── TodoItem.tsx          # Toggle + delete per todo (FR-05, FR-06, FR-07)
 │   │   │   ├── TodoItem.test.tsx
 │   │   │   ├── TodoRow.tsx           # Shared layout primitive (checkbox|content|action)
@@ -658,9 +658,9 @@ main.tsx
         ├── ErrorBanner        — reads mutation error state
         ├── TodoSection (Completed)
         │   └── TodoItem[]     — toggle + delete mutations
-        └── TodoSection (Active)
-            ├── TodoItem[]     — toggle + delete mutations
-            └── TodoInputRow   — create mutation
+        ├── TodoSection (Active)
+        │   └── TodoItem[]     — toggle + delete mutations
+        └── TodoForm           — create mutation
 ```
 
 **Data Boundary (Backend → DB)**
@@ -672,8 +672,8 @@ main.tsx
 
 | FR | Location |
 |---|---|
-| FR-01, FR-02 (create, validate) | `TodoInputRow.tsx` + `POST /todos` |
-| FR-03 (immediate appearance) | Optimistic update in `TodoInputRow.tsx` via `onMutate` |
+| FR-01, FR-02 (create, validate) | `TodoForm.tsx` + `POST /todos` |
+| FR-03 (immediate appearance) | Optimistic update in `TodoForm.tsx` via `onMutate` |
 | FR-04 (timestamps) | `Todo.created_at` in `models.py`, rendered in `TodoItem.tsx` |
 | FR-05, FR-06 (toggle, visual state) | `TodoItem.tsx` + `PATCH /todos/{id}` |
 | FR-07 (delete) | `TodoItem.tsx` + `DELETE /todos/{id}` |

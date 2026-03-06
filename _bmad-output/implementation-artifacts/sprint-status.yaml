@@ -47,7 +47,7 @@ development_status:
 
   epic-2: in-progress
   2-1-backend-todo-api-database: done
-  2-2-todo-list-view: backlog
+  2-2-todo-list-view: done
   2-3-create-todo: backlog
   2-4-complete-delete-todo: backlog
   epic-2-retrospective: optional

@@ -524,7 +524,7 @@ From shadcn/ui (via Radix UI), used directly:
 | Component | Usage |
 |---|---|
 | `Checkbox` | Todo completion toggle — handles state, keyboard navigation, focus ring, ARIA |
-| `Input` | Text input within `TodoInputRow` |
+| `Input` | Text input within `TodoForm` |
 | `Button` (`variant="ghost"`) | Trash icon button, add icon button, theme toggle |
 | `Skeleton` | Loading state placeholder rows |
 
@@ -534,7 +534,7 @@ All shadcn/ui components accept Tailwind className overrides — no custom CSS f
 
 **`TodoRow` — shared layout primitive**
 
-Purpose: Owns all structural layout shared between `TodoItem` and `TodoInputRow`. Guarantees visual consistency at the component level rather than by convention.
+Purpose: Owns all structural layout shared between `TodoItem` and `TodoForm`. Guarantees visual consistency at the component level rather than by convention.
 
 - Anatomy: flex row, `min-height` matching two-line content height, `py-3 px-4`, `gap-3`, `items-center`
 - Slots: `left` (checkbox area, fixed width), `content` (flex-1, overflow handling), `right` (optional icon action, fixed width)
@@ -554,7 +554,7 @@ Purpose: Renders a single persisted todo with its full interactive state.
 
 ---
 
-**`TodoInputRow` — composes `TodoRow`**
+**`TodoForm` — composes `TodoRow`**
 
 Purpose: Inline todo creation row, visually indistinguishable in structure from `TodoItem`.
 
@@ -571,8 +571,8 @@ Purpose: Labeled group of todo rows, conditionally rendered.
 
 - Anatomy: section label (`text-xs font-medium uppercase tracking-wide`) + list of `TodoItem`s
 - Renders only when it has items — no empty section headings
-- Active section always includes `TodoInputRow` as its last child
 - Props: `label`, `items`, `onToggle`, `onDelete`
+- Note: `TodoForm` is rendered at the App level below the sections, not inside `TodoSection`
 
 ---
 
@@ -604,15 +604,15 @@ Purpose: Theme state management — system preference detection + manual overrid
 
 ### Component Implementation Strategy
 
-- `TodoRow` is the single source of truth for row layout — any spacing change propagates automatically to both `TodoItem` and `TodoInputRow`
+- `TodoRow` is the single source of truth for row layout — any spacing change propagates automatically to both `TodoItem` and `TodoForm`
 - All components use Tailwind classes exclusively — no separate CSS files
 - shadcn/ui CSS variable tokens used for all colors — light/dark switching is automatic
-- Component tree: `ThemeProvider` → `AppHeader` + `TodoSection` (completed) + `TodoSection` (active with `TodoInputRow`)
+- Component tree: `ThemeProvider` → `AppHeader` + `TodoSection` (completed) + `TodoSection` (active) + `TodoForm`
 
 ### Implementation Roadmap
 
 **Phase 1 — Core:**
-`TodoRow` → `TodoInputRow` → `TodoItem` → `TodoSection`
+`TodoRow` → `TodoForm` → `TodoItem` → `TodoSection`
 
 **Phase 2 — Supporting:**
 `AppHeader` + `ThemeProvider` → `ErrorBanner`
@@ -638,7 +638,7 @@ Skeleton loading rows · Checkbox animation · Row enter/exit transitions
 
 ### Form Patterns
 
-**Input field (`TodoInputRow`):**
+**Input field (`TodoForm`):**
 - Placeholder: "Add a task…" — disappears on focus
 - Validation: empty input rejected silently (no submission, no error message — input stays focused)
 - Max length: 500 characters (FR-01) — input stops accepting characters at limit; no error label needed
@@ -675,12 +675,12 @@ Skeleton loading rows · Checkbox animation · Row enter/exit transitions
 ### Empty State Patterns
 
 **No todos at all:**
-- Only `TodoInputRow` visible — no section labels, no placeholder text, no illustrations
+- Only `TodoForm` visible — no section labels, no placeholder text, no illustrations
 - Input placeholder "Add a task…" is sufficient — no special empty state component needed
 
 **No active todos (all completed):**
 - Completed section renders normally at top
-- Active section shows only `TodoInputRow` — no "Active" label (label only renders when items exist)
+- Active section shows only `TodoForm` — no "Active" label (label only renders when items exist)
 
 **No completed todos:**
 - Completed section does not render at all — no label, no placeholder

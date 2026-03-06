@@ -5,6 +5,7 @@ export default {
       mode: "tags-split",
       target: "./src/api/generated",
       client: "react-query",
+      baseUrl: "/api",
     },
   },
 };
