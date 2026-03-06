@@ -50,7 +50,7 @@ development_status:
   2-2-todo-list-view: done
   2-3-create-todo: done
   2-4-complete-delete-todo: done
-  epic-2-retrospective: optional
+  epic-2-retrospective: done
 
   epic-3: backlog
   3-1-loading-error-states: backlog
