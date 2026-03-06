@@ -84,6 +84,8 @@ jobs:
           sed -i 's/^CORS_ORIGINS=.*/CORS_ORIGINS=["http:\/\/localhost"]/' .env
       - name: Start Docker Compose stack
         run: docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --wait
+      - name: Run database migrations
+        run: docker compose -f docker-compose.yml -f docker-compose.prod.yml exec backend alembic upgrade head
       - name: Run Playwright tests
         run: cd e2e && npx playwright test
       - name: Tear down stack

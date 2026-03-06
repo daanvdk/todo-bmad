@@ -1,6 +1,6 @@
 # Story 1.2: CI Pipeline
 
-Status: review
+Status: done
 
 ## Story
 
@@ -10,9 +10,9 @@ so that regressions in linting, tests, and API client freshness are caught autom
 
 ## Acceptance Criteria
 
-1. **Given** a push or pull request to the repository
+1. **Given** a push to `main` or a pull request to any branch
    **When** GitHub Actions triggers the CI workflow (`.github/workflows/ci.yml`)
-   **Then** four jobs run: `backend-checks`, `frontend-checks`, `e2e`, `orval-freshness`
+   **Then** four jobs run: `backend-checks`, `frontend-checks`, `e2e-checks`, `orval-freshness`
 
 2. **Given** the `backend-checks` job runs
    **When** it executes
@@ -25,9 +25,9 @@ so that regressions in linting, tests, and API client freshness are caught autom
    **Then** `biome check frontend/` passes
    **And** `vitest run` runs all tests and passes
 
-4. **Given** the `e2e` job runs
+4. **Given** the `e2e-checks` job runs
    **When** it executes
-   **Then** the full Docker Compose stack starts, all Playwright tests in `e2e/` pass, and the stack is torn down
+   **Then** the production Docker Compose stack starts (via `docker-compose.yml` + `docker-compose.prod.yml`), Biome linting passes, all Playwright tests in `e2e/` pass, and the stack is torn down
 
 5. **Given** the `orval-freshness` job runs
    **When** it generates the OpenAPI spec from the FastAPI app and runs orval
@@ -41,10 +41,10 @@ so that regressions in linting, tests, and API client freshness are caught autom
 - [x] Task 1: Create GitHub Actions workflow (AC: 1, 2, 3, 4, 5, 6)
   - [x] Create `.github/workflows/` directory
   - [x] Create `.github/workflows/ci.yml` with all four jobs
-  - [x] Configure triggers: `push` and `pull_request` on all branches
+  - [x] Configure triggers: `push` on `main` branch, `pull_request` on all branches
   - [x] `backend-checks` job: ruff check, ruff format --check, pytest
   - [x] `frontend-checks` job: biome check, vitest run
-  - [x] `e2e` job: docker compose up, wait for healthy, playwright test, docker compose down
+  - [x] `e2e-checks` job: biome check, docker compose (prod) up, wait for healthy, playwright test, docker compose down
   - [x] `orval-freshness` job: export openapi.json, run orval, git diff check
 
 - [x] Task 2: Set up E2E Playwright infrastructure (AC: 4)
@@ -330,17 +330,23 @@ claude-sonnet-4-6
 
 ### Debug Log References
 
-- `alembic/env.py` needed ruff formatting (reformatted via `uv run ruff format alembic/env.py`)
-- `docker-compose.yml` backend healthcheck already present from Story 1.1 — no modification needed
 - `backend/app/settings.py` already has `DATABASE_URL` default — used env var injection in orval-freshness step per preferred approach
 
 ### Completion Notes List
 
-- Created `.github/workflows/ci.yml` with all four jobs (backend-checks, frontend-checks, e2e, orval-freshness)
+- Created `.github/workflows/ci.yml` with all four jobs (backend-checks, frontend-checks, e2e-checks, orval-freshness)
 - Created E2E infrastructure: `e2e/package.json`, `e2e/playwright.config.ts`, `e2e/tests/todos.spec.ts`, `e2e/package-lock.json`
 - All local checks verified passing: ruff check, ruff format --check, pytest, biome check, vitest run
 - orval-freshness job uses env var injection (DATABASE_URL, CORS_ORIGINS) per story preferred approach
-- e2e job relies on existing backend healthcheck in docker-compose.yml for `--wait` to work
+- e2e-checks job uses production compose stack (`docker-compose.yml` + `docker-compose.prod.yml`) with Docker Bake caching
+- Post-implementation manual changes by developer:
+  - Restructured Docker setup: created `db/Dockerfile`, `proxy/Dockerfile`, switched docker-compose.yml from `image:` to `build: context:` for Docker Bake GHA cache support
+  - Refined `docker-compose.override.yml`: updated bind mounts and simplified dev command to `["--reload"]` (passed to entrypoint.sh via `$@`)
+  - Updated `backend/Dockerfile` and `backend/entrypoint.sh` to support both prod and dev via entrypoint pattern
+  - Deleted `backend/main.py` (leftover `uv init` placeholder)
+  - Added Biome linting to e2e tests (`e2e/biome.json`, CI step)
+  - Bumped Biome from 2.4.5 to 2.4.6 across frontend and e2e
+  - Restricted CI push trigger to `main` branch only (PRs still trigger on all branches)
 
 ### File List
 
@@ -349,8 +355,20 @@ claude-sonnet-4-6
 - `e2e/package-lock.json` (new)
 - `e2e/playwright.config.ts` (new)
 - `e2e/tests/todos.spec.ts` (new)
-- `backend/alembic/env.py` (modified — ruff format fix)
+- `e2e/biome.json` (new — Biome linting for e2e tests)
+- `db/Dockerfile` (new — wraps postgres:17-alpine for Docker Bake compatibility)
+- `proxy/Dockerfile` (new — wraps caddy:2-alpine + Caddyfile for Docker Bake compatibility)
+- `docker-compose.yml` (modified — switched all services from `image:` to `build: context:` for Bake caching)
+- `docker-compose.override.yml` (modified — refined bind mounts, simplified command to `["--reload"]`)
+- `backend/Dockerfile` (modified — added uv cache mount, ENV PATH, switched to entrypoint pattern)
+- `backend/entrypoint.sh` (modified — accepts extra args via `"$@"` for dev reload support)
+- `backend/main.py` (deleted — leftover `uv init` placeholder, not application code)
+- `frontend/biome.json` (modified — updated to Biome 2.4.6 schema, fixed organizeImports config)
+- `frontend/package.json` (modified — bumped @biomejs/biome to ^2.4.6)
+- `frontend/package-lock.json` (modified — lockfile update for biome bump)
 
 ## Change Log
 
-- 2026-03-05: Implemented Story 1.2 — created GitHub Actions CI workflow with 4 jobs, E2E Playwright infrastructure, fixed alembic/env.py formatting
+- 2026-03-05: Implemented Story 1.2 — created GitHub Actions CI workflow with 4 jobs, E2E Playwright infrastructure
+- 2026-03-05: Post-implementation refinements — Docker restructuring (Bake-compatible Dockerfiles, build contexts), Biome 2.4.6 upgrade, e2e linting, CI trigger scoped to main, dev compose simplification
+- 2026-03-06: Code review — updated story documentation to reflect all manual post-implementation changes

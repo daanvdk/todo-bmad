@@ -6,4 +6,4 @@ RUN --mount=type=cache,target=/root/.cache/uv uv sync --frozen --no-dev
 ENV PATH="/app/.venv/bin:$PATH"
 COPY . .
 EXPOSE 8000
-ENTRYPOINT ["./entrypoint.sh"]
+ENTRYPOINT ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
