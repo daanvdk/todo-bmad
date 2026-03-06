@@ -1,4 +1,4 @@
-import type { KeyboardEvent, ReactNode } from "react";
+import type { FormEvent, KeyboardEvent, ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 interface TodoRowProps {
@@ -7,6 +7,7 @@ interface TodoRowProps {
   content: ReactNode;
   right?: ReactNode;
   onClick?: () => void;
+  onSubmit?: (e: FormEvent<HTMLElement>) => void;
   className?: string;
 }
 
@@ -16,6 +17,7 @@ export function TodoRow({
   content,
   right,
   onClick,
+  onSubmit,
   className,
 }: TodoRowProps) {
   const handleKeyDown = onClick
@@ -38,6 +40,7 @@ export function TodoRow({
       tabIndex={onClick ? 0 : undefined}
       onClick={onClick}
       onKeyDown={handleKeyDown}
+      onSubmit={Tag === "form" ? onSubmit : undefined}
     >
       <div className="flex-shrink-0">{left}</div>
       <div className="flex-1 min-w-0">{content}</div>
