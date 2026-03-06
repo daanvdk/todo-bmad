@@ -1,6 +1,6 @@
 # Story 1.2: CI Pipeline
 
-Status: ready-for-dev
+Status: review
 
 ## Story
 
@@ -38,27 +38,27 @@ so that regressions in linting, tests, and API client freshness are caught autom
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Create GitHub Actions workflow (AC: 1, 2, 3, 4, 5, 6)
-  - [ ] Create `.github/workflows/` directory
-  - [ ] Create `.github/workflows/ci.yml` with all four jobs
-  - [ ] Configure triggers: `push` and `pull_request` on all branches
-  - [ ] `backend-checks` job: ruff check, ruff format --check, pytest
-  - [ ] `frontend-checks` job: biome check, vitest run
-  - [ ] `e2e` job: docker compose up, wait for healthy, playwright test, docker compose down
-  - [ ] `orval-freshness` job: export openapi.json, run orval, git diff check
+- [x] Task 1: Create GitHub Actions workflow (AC: 1, 2, 3, 4, 5, 6)
+  - [x] Create `.github/workflows/` directory
+  - [x] Create `.github/workflows/ci.yml` with all four jobs
+  - [x] Configure triggers: `push` and `pull_request` on all branches
+  - [x] `backend-checks` job: ruff check, ruff format --check, pytest
+  - [x] `frontend-checks` job: biome check, vitest run
+  - [x] `e2e` job: docker compose up, wait for healthy, playwright test, docker compose down
+  - [x] `orval-freshness` job: export openapi.json, run orval, git diff check
 
-- [ ] Task 2: Set up E2E Playwright infrastructure (AC: 4)
-  - [ ] Create `e2e/package.json` with `@playwright/test@1.58.2` dependency
-  - [ ] Create `e2e/playwright.config.ts` with baseURL `http://localhost`
-  - [ ] Create `e2e/tests/todos.spec.ts` with a baseline page-load smoke test
-  - [ ] Add `e2e/package-lock.json` (run `npm install` in `e2e/`)
+- [x] Task 2: Set up E2E Playwright infrastructure (AC: 4)
+  - [x] Create `e2e/package.json` with `@playwright/test@1.58.2` dependency
+  - [x] Create `e2e/playwright.config.ts` with baseURL `http://localhost`
+  - [x] Create `e2e/tests/todos.spec.ts` with a baseline page-load smoke test
+  - [x] Add `e2e/package-lock.json` (run `npm install` in `e2e/`)
 
-- [ ] Task 3: Verify all checks pass locally before pushing (AC: 2, 3)
-  - [ ] Run `cd backend && uv run ruff check .` → expect 0 errors
-  - [ ] Run `cd backend && uv run ruff format --check .` → expect 0 errors
-  - [ ] Run `cd backend && uv run pytest` → expect all tests pass
-  - [ ] Run `cd frontend && npx biome check .` → expect 0 errors
-  - [ ] Run `cd frontend && npx vitest run` → expect all tests pass
+- [x] Task 3: Verify all checks pass locally before pushing (AC: 2, 3)
+  - [x] Run `cd backend && uv run ruff check .` → expect 0 errors
+  - [x] Run `cd backend && uv run ruff format --check .` → expect 0 errors
+  - [x] Run `cd backend && uv run pytest` → expect all tests pass
+  - [x] Run `cd frontend && npx biome check .` → expect 0 errors
+  - [x] Run `cd frontend && npx vitest run` → expect all tests pass
 
 ## Dev Notes
 
@@ -330,6 +330,27 @@ claude-sonnet-4-6
 
 ### Debug Log References
 
+- `alembic/env.py` needed ruff formatting (reformatted via `uv run ruff format alembic/env.py`)
+- `docker-compose.yml` backend healthcheck already present from Story 1.1 — no modification needed
+- `backend/app/settings.py` already has `DATABASE_URL` default — used env var injection in orval-freshness step per preferred approach
+
 ### Completion Notes List
 
+- Created `.github/workflows/ci.yml` with all four jobs (backend-checks, frontend-checks, e2e, orval-freshness)
+- Created E2E infrastructure: `e2e/package.json`, `e2e/playwright.config.ts`, `e2e/tests/todos.spec.ts`, `e2e/package-lock.json`
+- All local checks verified passing: ruff check, ruff format --check, pytest, biome check, vitest run
+- orval-freshness job uses env var injection (DATABASE_URL, CORS_ORIGINS) per story preferred approach
+- e2e job relies on existing backend healthcheck in docker-compose.yml for `--wait` to work
+
 ### File List
+
+- `.github/workflows/ci.yml` (new)
+- `e2e/package.json` (new)
+- `e2e/package-lock.json` (new)
+- `e2e/playwright.config.ts` (new)
+- `e2e/tests/todos.spec.ts` (new)
+- `backend/alembic/env.py` (modified — ruff format fix)
+
+## Change Log
+
+- 2026-03-05: Implemented Story 1.2 — created GitHub Actions CI workflow with 4 jobs, E2E Playwright infrastructure, fixed alembic/env.py formatting

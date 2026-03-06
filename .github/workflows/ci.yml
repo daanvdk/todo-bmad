@@ -1,0 +1,101 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  backend-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+      - name: Install dependencies
+        run: cd backend && uv sync --frozen
+      - name: Ruff check
+        run: cd backend && uv run ruff check .
+      - name: Ruff format check
+        run: cd backend && uv run ruff format --check .
+      - name: Run pytest
+        run: cd backend && uv run pytest
+
+  frontend-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install dependencies
+        run: cd frontend && npm ci
+      - name: Biome check
+        run: cd frontend && npx biome check .
+      - name: Vitest run
+        run: cd frontend && npx vitest run
+
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Node (for Playwright)
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: e2e/package-lock.json
+      - name: Install E2E dependencies
+        run: cd e2e && npm ci
+      - name: Install Playwright browsers
+        run: cd e2e && npx playwright install --with-deps chromium
+      - name: Create .env file
+        run: |
+          cp .env.example .env
+          sed -i 's/^POSTGRES_DB=.*/POSTGRES_DB=todo/' .env
+          sed -i 's/^POSTGRES_USER=.*/POSTGRES_USER=todo/' .env
+          sed -i 's/^POSTGRES_PASSWORD=.*/POSTGRES_PASSWORD=todo/' .env
+          sed -i 's/^CORS_ORIGINS=.*/CORS_ORIGINS=["http:\/\/localhost"]/' .env
+      - name: Start Docker Compose stack
+        run: docker compose up -d --wait
+      - name: Run Playwright tests
+        run: cd e2e && npx playwright test
+      - name: Tear down stack
+        if: always()
+        run: docker compose down -v
+
+  orval-freshness:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+      - name: Install backend dependencies
+        run: cd backend && uv sync --frozen
+      - name: Generate OpenAPI spec
+        run: cd backend && uv run python -c "import json; from app.main import app; print(json.dumps(app.openapi()))" > openapi.json
+        env:
+          DATABASE_URL: "postgresql+asyncpg://todo:todo@localhost:5432/todo"
+          CORS_ORIGINS: '["http://localhost"]'
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install frontend dependencies
+        run: cd frontend && npm ci
+      - name: Regenerate API client
+        run: cd frontend && OPENAPI_PATH=../backend/openapi.json npx orval
+      - name: Check for drift
+        run: git diff --exit-code frontend/src/api/generated

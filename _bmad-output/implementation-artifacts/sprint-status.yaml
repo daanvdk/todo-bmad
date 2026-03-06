@@ -42,7 +42,7 @@ story_location: "{project-root}/_bmad-output/implementation-artifacts"
 development_status:
   epic-1: in-progress
   1-1-monorepo-scaffold-local-development-stack: done
-  1-2-ci-pipeline: ready-for-dev
+  1-2-ci-pipeline: review
   epic-1-retrospective: optional
 
   epic-2: backlog
