@@ -49,6 +49,28 @@ When modifying files that belong to an in-progress or review story (check `_bmad
 - **File List**: Add any new/modified files not already listed
 - **Change Log**: Append a dated entry summarizing what changed and why
 
+## Utility File Testing
+
+Any new non-trivial file in `frontend/src/lib/` or `frontend/src/hooks/` must include a corresponding `.test.ts` file in the same implementation pass — not deferred to review. Pure helper functions with no side effects are the easiest things to unit test; there is no reason to skip them.
+
+This does not apply to thin wrappers, re-exports, or files that are fully exercised through component tests.
+
+## Playwright MCP
+
+Playwright MCP is available for browser interaction during development. Use it when a running browser adds genuine signal that tests alone cannot provide.
+
+**Use Playwright MCP for:**
+- Verifying visual states that require browser rendering (e.g. skeleton animation, theme toggle appearance, error banner display)
+- Accessibility verification in context (e.g. keyboard navigation order, focus ring visibility, screen reader attributes on live components)
+- Responsive layout at specific viewport widths (e.g. confirming no horizontal scroll at 375px)
+- Debugging unexpected UI behavior that unit tests cannot reproduce
+
+**Do NOT use Playwright MCP to replace:**
+- Unit tests for logic and component behavior — those belong in `.test.ts` files
+- The committed E2E test suite in `e2e/tests/` — those are the permanent regression suite and must be written and run as normal
+
+The MCP is for exploratory verification during implementation. Anything worth keeping as a regression check belongs in the committed test suite.
+
 ## Verification Habits
 
 - After implementing a change, run **all three layers of tests** and confirm they pass before reporting done:
