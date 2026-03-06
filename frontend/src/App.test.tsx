@@ -5,20 +5,30 @@ import type React from "react";
 import { describe, expect, it, vi } from "vitest";
 import App from "./App";
 
-function renderWithClient(ui: React.ReactElement) {
-  const queryClient = new QueryClient({
-    defaultOptions: { queries: { retry: false } },
-  });
+function newQueryClient() {
+  return new QueryClient({ defaultOptions: { queries: { retry: false } } });
+}
+
+function renderWithClient(
+  ui: React.ReactElement,
+  queryClient = newQueryClient(),
+) {
   return render(
     <QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>,
   );
 }
 
-vi.mock("@/api/generated/todos/todos", () => ({
-  useListTodos: vi.fn(),
-  useCreateTodo: vi.fn(() => ({ mutate: vi.fn() })),
-  getListTodosQueryKey: () => ["/todos"],
-}));
+vi.mock("@/api/generated/todos/todos", async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import("@/api/generated/todos/todos")>();
+  return {
+    ...actual,
+    useListTodos: vi.fn(),
+    useCreateTodo: vi.fn(() => ({ mutate: vi.fn() })),
+    useUpdateTodo: vi.fn(() => ({ mutate: vi.fn() })),
+    useDeleteTodo: vi.fn(() => ({ mutate: vi.fn() })),
+  };
+});
 
 vi.mock("@/components/ThemeProvider", async (importOriginal) => {
   const actual =
@@ -35,13 +45,22 @@ vi.mock("@/hooks/useTheme", () => ({
   useTheme: vi.fn(() => ({ theme: "light", toggleTheme: vi.fn() })),
 }));
 
-const { useListTodos, useCreateTodo } = await import(
-  "@/api/generated/todos/todos"
-);
+const {
+  useListTodos,
+  useCreateTodo,
+  useUpdateTodo,
+  useDeleteTodo,
+  getListTodosQueryKey,
+} = await import("@/api/generated/todos/todos");
 const mockUseListTodos = vi.mocked(useListTodos);
 const mockUseCreateTodo = vi.mocked(useCreateTodo);
+const mockUseUpdateTodo = vi.mocked(useUpdateTodo);
+const mockUseDeleteTodo = vi.mocked(useDeleteTodo);
 
 describe("App", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
   it("renders 'My Tasks' header", () => {
     mockUseListTodos.mockReturnValue({
       data: { data: [] },
@@ -156,5 +175,78 @@ describe("App", () => {
     await userEvent.type(input, "Buy milk");
     await userEvent.keyboard("{Enter}");
     expect(mockMutate).toHaveBeenCalledWith({ data: { text: "Buy milk" } });
+  });
+
+  it("calls updateTodo mutate when active todo row is clicked", async () => {
+    const mockMutate = vi.fn();
+    mockUseUpdateTodo.mockReturnValue({
+      mutate: mockMutate,
+    } as unknown as ReturnType<typeof useUpdateTodo>);
+    const todo = {
+      id: 10,
+      text: "Active item",
+      is_completed: false,
+      created_at: "2026-03-06T10:00:00",
+    };
+    mockUseListTodos.mockReturnValue({
+      data: { data: [todo] },
+      isError: false,
+    } as ReturnType<typeof useListTodos>);
+    const queryClient = newQueryClient();
+    queryClient.setQueryData(getListTodosQueryKey(), { data: [todo] });
+    renderWithClient(<App />, queryClient);
+    await userEvent.click(screen.getByText("Active item"));
+    expect(mockMutate).toHaveBeenCalledWith({
+      todoId: 10,
+      data: { is_completed: true },
+    });
+  });
+
+  it("calls updateTodo mutate with is_completed: false when completed todo row is clicked", async () => {
+    const mockMutate = vi.fn();
+    mockUseUpdateTodo.mockReturnValue({
+      mutate: mockMutate,
+    } as unknown as ReturnType<typeof useUpdateTodo>);
+    const todo = {
+      id: 11,
+      text: "Done item",
+      is_completed: true,
+      created_at: "2026-03-06T10:00:00",
+    };
+    mockUseListTodos.mockReturnValue({
+      data: { data: [todo] },
+      isError: false,
+    } as ReturnType<typeof useListTodos>);
+    const queryClient = newQueryClient();
+    queryClient.setQueryData(getListTodosQueryKey(), { data: [todo] });
+    renderWithClient(<App />, queryClient);
+    await userEvent.click(screen.getByText("Done item"));
+    expect(mockMutate).toHaveBeenCalledWith({
+      todoId: 11,
+      data: { is_completed: false },
+    });
+  });
+
+  it("calls deleteTodoMutation mutate when trash icon is clicked", async () => {
+    const mockMutate = vi.fn();
+    mockUseDeleteTodo.mockReturnValue({
+      mutate: mockMutate,
+    } as unknown as ReturnType<typeof useDeleteTodo>);
+    mockUseListTodos.mockReturnValue({
+      data: {
+        data: [
+          {
+            id: 12,
+            text: "Delete me",
+            is_completed: false,
+            created_at: "2026-03-06T10:00:00",
+          },
+        ],
+      },
+      isError: false,
+    } as ReturnType<typeof useListTodos>);
+    renderWithClient(<App />);
+    await userEvent.click(screen.getByRole("button", { name: "Delete todo" }));
+    expect(mockMutate).toHaveBeenCalledWith({ todoId: 12 });
   });
 });
