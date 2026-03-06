@@ -15,6 +15,7 @@ Always run formatter first, then linter with autofix. This avoids false positive
 ```bash
 uv run ruff format .
 uv run ruff check --fix .
+uv run pyright app/
 ```
 
 **Frontend / e2e** (run from the relevant directory):

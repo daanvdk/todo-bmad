@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
-from sqlmodel import select
+from sqlmodel import col, select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from app.database import get_session
@@ -10,7 +10,7 @@ router = APIRouter(prefix="/todos", tags=["todos"])
 
 @router.get("", response_model=list[TodoPublic], operation_id="listTodos")
 async def list_todos(session: AsyncSession = Depends(get_session)):
-    result = await session.exec(select(Todo).order_by(Todo.created_at))
+    result = await session.exec(select(Todo).order_by(col(Todo.created_at)))
     return result.all()
 
 
