@@ -43,7 +43,7 @@ development_status:
   epic-1: in-progress
   1-1-monorepo-scaffold-local-development-stack: done
   1-2-ci-pipeline: done
-  epic-1-retrospective: optional
+  epic-1-retrospective: done
 
   epic-2: backlog
   2-1-backend-todo-api-database: backlog
