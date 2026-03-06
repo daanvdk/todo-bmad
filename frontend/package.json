@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "generate-api": "orval && biome format --write --no-errors-on-unmatched src/api/generated/",
     "lint": "biome check .",
     "preview": "vite preview"
   },

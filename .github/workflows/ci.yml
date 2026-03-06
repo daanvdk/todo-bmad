@@ -118,6 +118,6 @@ jobs:
       - name: Install frontend dependencies
         run: cd frontend && npm ci
       - name: Regenerate API client
-        run: cd frontend && OPENAPI_PATH=../backend/openapi.json npx orval
+        run: cd frontend && OPENAPI_PATH=../backend/openapi.json npm run generate-api
       - name: Check for drift
         run: git diff --exit-code frontend/src/api/generated
