@@ -22,6 +22,8 @@ jobs:
         run: cd backend && uv run ruff check .
       - name: Ruff format check
         run: cd backend && uv run ruff format --check .
+      - name: Pyright
+        run: cd backend && uv run pyright app/
       - name: Run pytest
         run: cd backend && uv run pytest
 

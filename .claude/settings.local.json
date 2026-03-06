@@ -23,7 +23,8 @@
       "mcp__github__pull_request_read",
       "mcp__github__get_commit",
       "WebFetch(domain:registry.npmjs.org)",
-      "Bash(docker compose logs:*)"
+      "Bash(docker compose logs:*)",
+      "Bash(uv run pyright:*)"
     ]
   }
 }
