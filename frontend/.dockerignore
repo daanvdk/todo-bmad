@@ -1,2 +1,9 @@
 node_modules
 dist
+*.md
+.env
+.env.*
+src/**/*.test.*
+src/test-setup.ts
+biome.json
+orval.config.ts
