@@ -2,14 +2,28 @@
   "permissions": {
     "allow": [
       "WebSearch",
-      "Bash(npm install:*)",
+      "Bash(uv run ruff*)",
+      "Bash(uv run pytest*)",
+      "Bash(cd * && uv run ruff*)",
+      "Bash(cd * && uv run pytest*)",
+      "Bash(docker compose exec backend alembic revision*)",
+      "Bash(docker compose exec backend alembic upgrade*)",
+      "Bash(npm run generate-api*)",
+      "Bash(cd * && npm run generate-api*)",
+      "Bash(npm run lint*)",
+      "Bash(npm run format*)",
+      "Bash(npx biome*)",
+      "Bash(cd * && npm run lint*)",
+      "Bash(cd * && npm run format*)",
+      "Bash(cd * && npx biome*)",
       "mcp__github__list_pull_requests",
       "mcp__github__get_pull_request_status",
       "mcp__github__get_pull_request",
       "mcp__github__get_me",
       "mcp__github__pull_request_read",
       "mcp__github__get_commit",
-      "WebFetch(domain:registry.npmjs.org)"
+      "WebFetch(domain:registry.npmjs.org)",
+      "Bash(docker compose logs:*)"
     ]
   }
 }

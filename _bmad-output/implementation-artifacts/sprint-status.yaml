@@ -45,8 +45,8 @@ development_status:
   1-2-ci-pipeline: done
   epic-1-retrospective: done
 
-  epic-2: backlog
-  2-1-backend-todo-api-database: backlog
+  epic-2: in-progress
+  2-1-backend-todo-api-database: done
   2-2-todo-list-view: backlog
   2-3-create-todo: backlog
   2-4-complete-delete-todo: backlog

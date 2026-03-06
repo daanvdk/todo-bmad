@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.routes.todos import router as todos_router
 from app.settings import settings
 
 app = FastAPI(title="todo-bmad API")
@@ -11,3 +12,5 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(todos_router)

@@ -10,7 +10,11 @@ config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-target_metadata = None
+from sqlmodel import SQLModel  # noqa: E402
+
+from app.models import Todo  # noqa: E402, F401
+
+target_metadata = SQLModel.metadata
 
 # Derive synchronous URL from async DATABASE_URL for Alembic
 sync_url = settings.DATABASE_URL.replace("postgresql+asyncpg", "postgresql+psycopg2")
