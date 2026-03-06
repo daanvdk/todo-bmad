@@ -1,6 +1,7 @@
 services:
   db:
-    image: postgres:17-alpine
+    build:
+      context: ./db
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
@@ -36,9 +37,8 @@ services:
         condition: service_healthy
 
   proxy:
-    image: caddy:2-alpine
-    volumes:
-      - ./proxy/Caddyfile:/etc/caddy/Caddyfile
+    build:
+      context: ./proxy
     depends_on:
       - frontend
       - backend
