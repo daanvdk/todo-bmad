@@ -42,7 +42,7 @@ jobs:
       - name: Vitest run
         run: cd frontend && npx vitest run
 
-  e2e:
+  e2e-checks:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -54,6 +54,8 @@ jobs:
           cache-dependency-path: e2e/package-lock.json
       - name: Install E2E dependencies
         run: cd e2e && npm ci
+      - name: Biome check
+        run: cd e2e && npx biome check .
       - name: Cache Playwright browsers
         uses: actions/cache@v4
         with:
