@@ -3,12 +3,14 @@ services:
     ports:
       - "5432:5432"
   backend:
+    user: root
     volumes:
       - ./backend/app:/app/app
       - ./backend/alembic:/app/alembic
       - ./backend/tests:/app/tests
     command: ["--reload"]
   frontend:
+    user: root
     build:
       target: development
     volumes:

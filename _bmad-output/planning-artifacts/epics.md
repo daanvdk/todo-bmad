@@ -2,6 +2,10 @@
 stepsCompleted: ['step-01-validate-prerequisites', 'step-02-design-epics', 'step-03-create-stories', 'step-04-final-validation']
 status: 'complete'
 completedAt: '2026-03-05'
+lastUpdated: '2026-03-09'
+changeLog:
+  - date: '2026-03-09'
+    changes: 'Added Epic 4 (Infrastructure Hardening) and Epic 5 (Quality Assurance) with full story breakdowns'
 inputDocuments:
   - docs/prd.md
   - _bmad-output/planning-artifacts/architecture.md
@@ -125,6 +129,28 @@ The app handles every state gracefully — loading, error, and edge cases. It wo
 
 **FRs covered:** FR-10, FR-11, FR-12
 **NFR coverage:** NFR-01 (validated), NFR-02, NFR-03, NFR-05, NFR-08, NFR-09
+
+---
+
+### Epic 4: Infrastructure Hardening
+
+All containers run as non-root users. A static health endpoint is exposed on the backend. All services have proper Docker Compose health checks and the proxy only starts once its dependencies are healthy.
+
+**Developer Outcome:** The stack is more secure by default and `docker compose ps` reliably reflects actual service health — no more "started but not ready" surprises.
+
+**FRs covered:** None directly
+**NFR coverage:** NFR-07 (auth-readiness not broken by security changes)
+
+---
+
+### Epic 5: Quality Assurance
+
+Test coverage is measured and meets the ≥70% threshold on both backend and frontend. Performance benchmarks from the PRD are validated against the running app. Accessibility is automatically checked via axe in the E2E suite. A security findings report is produced covering dependency CVEs, CORS, input validation, secrets hygiene, and container privileges.
+
+**Developer Outcome:** Known quality gaps are identified and closed. The team has documented evidence that NFRs are met and no obvious security or accessibility issues remain.
+
+**FRs covered:** None directly
+**NFR coverage:** NFR-01, NFR-02, NFR-03 (validated), NFR-05, NFR-08, NFR-09
 
 ---
 
@@ -517,3 +543,223 @@ So that the app feels at home on my device and is accessible to all users.
 **Given** the OS has reduced motion enabled (`prefers-reduced-motion: reduce`)
 **When** the checkbox animation or any row transition fires
 **Then** animations are disabled or reduced to an instant state change
+
+---
+
+## Epic 4: Infrastructure Hardening
+
+All containers run as non-root users. A static health endpoint is exposed on the backend. All services have proper Docker Compose health checks and the proxy only starts once its dependencies are healthy.
+
+**Developer Outcome:** The stack is more secure by default and `docker compose ps` reliably reflects actual service health.
+
+### Story 4.1: Non-root Container Users
+
+As a **developer**,
+I want all containers to run as non-root users,
+So that a compromised container process cannot affect the host or other containers with root-level privileges.
+
+**Acceptance Criteria:**
+
+**Given** the backend Dockerfile
+**When** the image is built
+**Then** a non-root user (e.g. `appuser`) is created and set as the running user via `USER appuser`
+**And** file ownership of `/app` is granted to that user before the `USER` instruction
+
+**Given** the frontend Dockerfile
+**When** the development or production stage runs
+**Then** the process runs as a non-root user in both stages
+
+**Given** any running service (`backend`, `frontend`)
+**When** `docker compose exec <service> id` is run
+**Then** the output does not show `uid=0(root)`
+
+**Given** Caddy (`proxy` service)
+**Then** no change is needed — Caddy's official image already runs as non-root by default
+
+---
+
+### Story 4.2: Backend Health Endpoint
+
+As a **developer**,
+I want a health endpoint on the backend,
+So that Docker and any external monitoring can check whether the service is up without touching business logic.
+
+**Acceptance Criteria:**
+
+**Given** the backend service is running
+**When** `GET /health` is called
+**Then** it returns `200 OK` with body `{"status": "ok"}`
+
+**Given** the Caddy proxy is running
+**When** `GET /api/health` is called
+**Then** it proxies to the backend and returns the same `200 OK` response
+
+**Given** the FastAPI app
+**Then** the `/health` route has `operation_id="healthCheck"` and is included in the OpenAPI spec
+
+**Given** the backend test suite
+**Then** a pytest test covers `GET /health` asserting status `200` and response body `{"status": "ok"}`
+
+---
+
+### Story 4.3: Docker Compose Health Checks & Service Dependencies
+
+As a **developer**,
+I want all services to declare health checks and the proxy to wait for healthy dependencies,
+So that `docker compose up` reliably results in a fully operational stack rather than services starting before their dependencies are ready.
+
+**Acceptance Criteria:**
+
+**Given** the backend service in `docker-compose.yml`
+**When** the health check runs
+**Then** it calls `GET /health` (via `wget -qO- http://localhost:8000/health` or equivalent)
+**And** the check is configured with `interval: 10s`, `timeout: 5s`, `retries: 5`, `start_period: 10s`
+
+**Given** the frontend service in `docker-compose.yml`
+**When** the health check runs
+**Then** it verifies the dev server (or static server in prod) is responding on its port
+
+**Given** the proxy service in `docker-compose.yml`
+**When** configured with `depends_on`
+**Then** it uses `condition: service_healthy` for both `backend` and `frontend`
+
+**Given** `docker compose up` completes
+**When** `docker compose ps` is run
+**Then** all services (`db`, `backend`, `frontend`, `proxy`) show status `healthy`
+
+**Given** the existing `db` health check
+**Then** it remains unchanged — `pg_isready` is already correctly configured
+
+---
+
+## Epic 5: Quality Assurance
+
+Test coverage is measured and meets ≥70% on both backend and frontend. Performance benchmarks from the PRD are validated against the running app. Accessibility is automatically checked via axe in the E2E suite. A security findings report is produced.
+
+**Developer Outcome:** Known quality gaps are identified and closed. The team has documented evidence that NFRs are met and no obvious security or accessibility issues remain.
+
+### Story 5.1: Test Coverage Analysis & Improvement
+
+As a **developer**,
+I want test coverage measured and enforced at ≥70% on both backend and frontend,
+So that critical paths are verified and regressions are caught reliably.
+
+**Acceptance Criteria:**
+
+**Given** the backend test suite
+**When** `pytest --cov=app --cov-report=term-missing` runs
+**Then** a per-module coverage report is printed to stdout
+**And** overall line coverage is ≥70%
+
+**Given** the frontend test suite
+**When** `vitest run --coverage` runs
+**Then** a per-file coverage report is produced
+**And** overall statement/line coverage is ≥70%
+
+**Given** the CI pipeline (`backend-checks` and `frontend-checks` jobs)
+**When** coverage falls below 70%
+**Then** the relevant job fails with a clear coverage summary in the output
+
+**Given** the coverage reports
+**When** gaps are identified in critical paths (API endpoints, mutation hooks, error handling, utility functions)
+**Then** new tests are written to cover those gaps before the story is marked complete
+
+**Given** `pytest-cov` as a backend dev dependency and `@vitest/coverage-v8` as a frontend dev dependency
+**Then** both are added to the respective dependency manifests
+
+---
+
+### Story 5.2: Performance Validation
+
+As a **developer**,
+I want the PRD performance benchmarks validated against the running app,
+So that there is documented evidence that NFR-01, NFR-02, and NFR-03 are actually met — not just assumed.
+
+**Acceptance Criteria:**
+
+**Given** the app running with at least 20 todos seeded in the database
+**When** a Playwright test measures time from navigation start to todos being visible (using `performance.getEntriesByType`)
+**Then** the time to first meaningful render is ≤1000ms (NFR-02)
+
+**Given** a create mutation triggered via Playwright
+**When** measured from click to new todo appearing in the DOM
+**Then** the UI reflects the new item in ≤200ms (optimistic update, NFR-01)
+
+**Given** the backend API
+**When** 20 sequential `GET /todos` requests are made and response times are recorded
+**Then** the p95 response time is ≤500ms (NFR-03)
+
+**Given** the performance test results
+**Then** they are committed as a Playwright test in `e2e/tests/performance.spec.ts` that asserts the above thresholds
+**And** the test runs as part of the standard E2E suite in CI
+
+---
+
+### Story 5.3: Accessibility Audit
+
+As a **user and developer**,
+I want automated accessibility checks integrated into the E2E suite and any violations fixed,
+So that WCAG 2.1 AA compliance is continuously enforced rather than verified once and forgotten.
+
+**Acceptance Criteria:**
+
+**Given** `axe-playwright` (or `@axe-core/playwright`) is installed as an E2E dev dependency
+**When** the accessibility test suite runs
+**Then** it scans each major app state: loaded list, empty state, loading skeleton state, error banner visible, dark mode
+
+**Given** any WCAG AA violation detected by axe
+**When** the test runs
+**Then** the test fails with a report of the specific violation, its impact level, and the affected element
+
+**Given** a Lighthouse audit run against `http://localhost` (full Docker stack)
+**When** the accessibility category is measured
+**Then** the score is ≥90
+
+**Given** any violations found during initial audit runs
+**Then** they are fixed before the story is marked complete
+**And** the final Lighthouse accessibility score (≥90) is documented in the story's change log
+
+**Given** the axe tests
+**Then** they live in `e2e/tests/accessibility.spec.ts` and run as part of the standard E2E suite in CI
+
+---
+
+### Story 5.4: Security Review & Findings Report
+
+As a **developer**,
+I want a systematic security review with a documented findings report,
+So that known vulnerabilities, misconfigurations, and hygiene issues are identified and addressed.
+
+**Acceptance Criteria:**
+
+**Given** the backend Python dependencies
+**When** `uv audit` (or `pip-audit`) runs
+**Then** all known CVEs are identified
+**And** any high or critical severity vulnerabilities are resolved or have a documented acceptance rationale
+
+**Given** the frontend Node dependencies
+**When** `npm audit` runs
+**Then** all known CVEs are identified
+**And** any high or critical severity vulnerabilities are resolved or have a documented acceptance rationale
+
+**Given** the CORS configuration
+**When** reviewed
+**Then** allowed origins are explicitly allowlisted — no wildcard `*` — in the production configuration
+**And** the review outcome is documented in the findings report
+
+**Given** the API input validation
+**When** reviewed
+**Then** all endpoints reject empty text, oversized text (>500 chars), and malformed payloads with appropriate error codes
+**And** no raw SQL is used — all DB access goes through SQLModel/SQLAlchemy ORM
+
+**Given** the repository contents
+**When** reviewed
+**Then** no secrets, credentials, or `.env` files with real values are committed
+**And** `.env.example` contains only placeholder values
+
+**Given** container privilege review
+**Then** the findings confirm Story 4.1 is complete (all containers non-root) and this is noted in the report
+
+**Given** the completed review
+**Then** a findings report is saved to `_bmad-output/planning-artifacts/security-findings-report.md`
+**And** it documents: dependency audit results, CORS review, input validation review, secrets hygiene check, container privilege status, and any outstanding accepted risks
