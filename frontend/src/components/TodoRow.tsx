@@ -1,4 +1,4 @@
-import type { FormEvent, KeyboardEvent, ReactNode } from "react";
+import { type FormEvent, forwardRef, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 interface TodoRowProps {
@@ -12,36 +12,29 @@ interface TodoRowProps {
   "aria-hidden"?: true;
 }
 
-export function TodoRow({
-  as: Tag = "li",
-  left,
-  content,
-  right,
-  onClick,
-  onSubmit,
-  className,
-  "aria-hidden": ariaHidden,
-}: TodoRowProps) {
-  const handleKeyDown = onClick
-    ? (e: KeyboardEvent<HTMLElement>) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          onClick();
-        }
-      }
-    : undefined;
-
+export const TodoRow = forwardRef<HTMLElement, TodoRowProps>(function TodoRow(
+  {
+    as: Tag = "li",
+    left,
+    content,
+    right,
+    onClick,
+    onSubmit,
+    className,
+    "aria-hidden": ariaHidden,
+  },
+  ref,
+) {
   return (
     <Tag
+      ref={ref as React.Ref<HTMLFormElement & HTMLLIElement & HTMLDivElement>}
       className={cn(
-        "flex min-h-[44px] items-center gap-3 py-3 px-4",
-        onClick && "cursor-pointer hover:bg-[var(--muted)] transition-colors",
+        "flex min-h-[44px] items-center gap-3 py-2 sm:py-3 px-4",
+        onClick &&
+          "cursor-pointer rounded-lg hover:bg-[var(--muted)] transition-colors",
         className,
       )}
-      role={onClick ? "button" : undefined}
-      tabIndex={onClick ? 0 : undefined}
       onClick={onClick}
-      onKeyDown={handleKeyDown}
       onSubmit={Tag === "form" ? onSubmit : undefined}
       aria-hidden={ariaHidden}
     >
@@ -50,4 +43,4 @@ export function TodoRow({
       {right && <div className="flex-shrink-0">{right}</div>}
     </Tag>
   );
-}
+});
