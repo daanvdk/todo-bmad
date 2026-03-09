@@ -13,6 +13,8 @@ services:
     user: root
     build:
       target: development
+    healthcheck:
+      start_period: 30s
     volumes:
       - ./frontend/src:/app/src
       - ./frontend/index.html:/app/index.html

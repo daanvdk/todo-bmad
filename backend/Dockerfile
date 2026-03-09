@@ -1,6 +1,8 @@
 FROM python:3.12-slim
 WORKDIR /app
-RUN groupadd -r appuser && useradd -r -g appuser appuser \
+RUN apt-get update && apt-get install -y --no-install-recommends curl \
+    && rm -rf /var/lib/apt/lists/* \
+    && groupadd -r appuser && useradd -r -g appuser appuser \
     && chown appuser:appuser /app
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 USER appuser
