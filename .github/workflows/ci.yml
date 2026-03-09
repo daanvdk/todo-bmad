@@ -64,7 +64,7 @@ jobs:
           path: ~/.cache/ms-playwright
           key: playwright-${{ hashFiles('e2e/package-lock.json') }}
       - name: Install Playwright browsers
-        run: cd e2e && npx playwright install --with-deps chromium
+        run: cd e2e && npx playwright install --with-deps chromium firefox webkit
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       - name: Build Docker images

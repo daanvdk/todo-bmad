@@ -71,6 +71,16 @@ Playwright MCP is available for browser interaction during development. Use it w
 
 The MCP is for exploratory verification during implementation. Anything worth keeping as a regression check belongs in the committed test suite.
 
+## Docker HMR Workaround
+
+Claude's file write tools use atomic writes (temp file + rename), which can cause Docker bind mounts to miss inotify events. After editing frontend or backend source files, `touch` each changed file on the host so Vite/uvicorn picks up the change:
+
+```bash
+touch frontend/src/components/ui/Button.tsx
+```
+
+Do this before running E2E tests or relying on hot-reload.
+
 ## Verification Habits
 
 - After implementing a change, run **all three layers of tests** and confirm they pass before reporting done:
