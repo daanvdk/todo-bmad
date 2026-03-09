@@ -11,3 +11,9 @@ def test_openapi_spec_served():
     data = response.json()
     assert data["openapi"].startswith("3.")
     assert data["info"]["title"] == "todo-bmad API"
+
+
+def test_health_check():
+    response = client.get("/health")
+    assert response.status_code == 200
+    assert response.json() == {"status": "ok"}
