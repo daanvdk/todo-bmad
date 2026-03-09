@@ -9,6 +9,7 @@ interface TodoRowProps {
   onClick?: () => void;
   onSubmit?: (e: FormEvent<HTMLElement>) => void;
   className?: string;
+  "aria-hidden"?: true;
 }
 
 export function TodoRow({
@@ -19,6 +20,7 @@ export function TodoRow({
   onClick,
   onSubmit,
   className,
+  "aria-hidden": ariaHidden,
 }: TodoRowProps) {
   const handleKeyDown = onClick
     ? (e: KeyboardEvent<HTMLElement>) => {
@@ -41,6 +43,7 @@ export function TodoRow({
       onClick={onClick}
       onKeyDown={handleKeyDown}
       onSubmit={Tag === "form" ? onSubmit : undefined}
+      aria-hidden={ariaHidden}
     >
       <div className="flex-shrink-0">{left}</div>
       <div className="flex-1 min-w-0">{content}</div>

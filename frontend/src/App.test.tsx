@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen } from "@testing-library/react";
+import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type React from "react";
 import { describe, expect, it, vi } from "vitest";
@@ -248,5 +248,92 @@ describe("App", () => {
     renderWithClient(<App />);
     await userEvent.click(screen.getByRole("button", { name: "Delete todo" }));
     expect(mockMutate).toHaveBeenCalledWith({ todoId: 12 });
+  });
+
+  it("shows mutation error in banner when create fails", () => {
+    mockUseListTodos.mockReturnValue({
+      data: { data: [] },
+      isPending: false,
+      isError: false,
+    } as ReturnType<typeof useListTodos>);
+    // Capture the onError callback from mutation options, then invoke it once
+    let capturedOnError: ((...args: unknown[]) => void) | undefined;
+    mockUseCreateTodo.mockImplementation(((options?: {
+      mutation?: { onError?: (...args: unknown[]) => void };
+    }) => {
+      if (options?.mutation?.onError && !capturedOnError) {
+        capturedOnError = options.mutation.onError;
+      }
+      return { mutate: vi.fn() } as unknown as ReturnType<typeof useCreateTodo>;
+    }) as typeof useCreateTodo);
+    renderWithClient(<App />);
+    // Invoke onError after render to simulate mutation failure
+    act(() => {
+      capturedOnError?.(
+        new Error("server error"),
+        { data: { text: "test" } },
+        undefined,
+      );
+    });
+    expect(screen.getByRole("alert")).toHaveTextContent("Failed to save");
+  });
+
+  it("shows skeleton rows and form when loading", () => {
+    mockUseListTodos.mockReturnValue({
+      data: undefined,
+      isPending: true,
+      isError: false,
+    } as ReturnType<typeof useListTodos>);
+    const { container } = renderWithClient(<App />);
+    expect(
+      screen.getByRole("textbox", { name: "Add a task" }),
+    ).toBeInTheDocument();
+    expect(screen.queryByText("Active")).not.toBeInTheDocument();
+    expect(screen.queryByText("Completed")).not.toBeInTheDocument();
+    // Verify skeleton rows are actually rendered (li elements from SkeletonRow)
+    const skeletons = container.querySelectorAll('li[aria-hidden="true"]');
+    expect(skeletons).toHaveLength(3);
+  });
+
+  it("shows 'Network issue' error banner when fetch fails", () => {
+    mockUseListTodos.mockReturnValue({
+      data: undefined,
+      isPending: false,
+      isError: true,
+    } as ReturnType<typeof useListTodos>);
+    renderWithClient(<App />);
+    expect(screen.getByRole("alert")).toHaveTextContent("Network issue");
+    expect(
+      screen.getByRole("textbox", { name: "Add a task" }),
+    ).toBeInTheDocument();
+  });
+
+  it("clears error banner when fetch error resolves with fresh data", async () => {
+    // Start with a fetch error
+    mockUseListTodos.mockReturnValue({
+      data: undefined,
+      isPending: false,
+      isError: true,
+    } as ReturnType<typeof useListTodos>);
+
+    const queryClient = newQueryClient();
+    const { rerender } = renderWithClient(<App />, queryClient);
+
+    expect(screen.getByRole("alert")).toHaveTextContent("Network issue");
+
+    // Fetch error resolves — fresh data arrives
+    mockUseListTodos.mockReturnValue({
+      data: { data: [] },
+      isPending: false,
+      isError: false,
+    } as ReturnType<typeof useListTodos>);
+
+    rerender(
+      <QueryClientProvider client={queryClient}>
+        <App />
+      </QueryClientProvider>,
+    );
+
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
 });
