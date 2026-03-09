@@ -1,4 +1,4 @@
-# generated: 2026-03-05
+# generated: 2026-03-09
 # project: todo-bmad
 # project_key: NOKEY
 # tracking_system: file-system
@@ -33,7 +33,7 @@
 # - SM typically creates next story after previous one is 'done' to incorporate learnings
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
-generated: 2026-03-05
+generated: 2026-03-09
 project: todo-bmad
 project_key: NOKEY
 tracking_system: file-system
@@ -57,3 +57,16 @@ development_status:
   3-2-responsive-layout-mobile-experience: done
   3-3-theme-toggle-accessibility: done
   epic-3-retrospective: done
+
+  epic-4: in-progress
+  4-1-non-root-container-users: done
+  4-2-backend-health-endpoint: backlog
+  4-3-docker-compose-health-checks-service-dependencies: backlog
+  epic-4-retrospective: optional
+
+  epic-5: backlog
+  5-1-test-coverage-analysis-improvement: backlog
+  5-2-performance-validation: backlog
+  5-3-accessibility-audit: backlog
+  5-4-security-review-findings-report: backlog
+  epic-5-retrospective: optional
