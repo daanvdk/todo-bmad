@@ -481,6 +481,10 @@ So that the app feels at home on my device and is accessible to all users.
 **Given** the theme toggle button
 **Then** it has a dynamic `aria-label`: "Switch to dark mode" in light mode, "Switch to light mode" in dark mode
 
+**Given** any interactive element (theme toggle, checkboxes in TodoItem and TodoForm, delete button, submit/add button)
+**When** the user hovers over it with a pointing device
+**Then** the cursor changes to `cursor: pointer`
+
 **Given** all interactive elements in the app
 **When** navigated via keyboard (Tab / Shift+Tab)
 **Then** all elements are reachable in a logical order with no keyboard traps
@@ -489,6 +493,14 @@ So that the app feels at home on my device and is accessible to all users.
 **Given** the checkbox on a todo item
 **Then** it has `aria-label="Mark as complete"` when unchecked and `aria-label="Mark as active"` when checked
 **And** Space key toggles it (Radix UI native behavior)
+
+**Given** an unselected checkbox in TodoItem
+**When** rendered in either light or dark mode
+**Then** the checkbox border is clearly visible with sufficient contrast against its background (WCAG AA minimum: 3:1 for UI components)
+
+**Given** the placeholder checkbox in TodoForm
+**When** rendered in either light or dark mode
+**Then** the checkbox border remains clearly visible and the element's opacity styling does not reduce border contrast below WCAG AA threshold
 
 **Given** the trash icon button on a todo item
 **Then** it has `aria-label="Delete todo"`

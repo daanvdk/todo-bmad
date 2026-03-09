@@ -14,7 +14,7 @@ export function Button({ variant, size, className, ...props }: ButtonProps) {
         "inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50",
         variant === "ghost" &&
           "hover:bg-[var(--muted)] hover:text-[var(--foreground)]",
-        size === "icon" && "h-9 w-9",
+        size === "icon" && "h-11 w-11",
         className,
       )}
       {...props}
