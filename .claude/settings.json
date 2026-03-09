@@ -16,18 +16,12 @@
       "Bash(cd * && npm run lint*)",
       "Bash(cd * && npm run format*)",
       "Bash(cd * && npx biome*)",
-      "mcp__github__list_pull_requests",
-      "mcp__github__get_pull_request_status",
-      "mcp__github__get_pull_request",
-      "mcp__github__get_me",
-      "mcp__github__pull_request_read",
-      "mcp__github__get_commit",
-      "WebFetch(domain:registry.npmjs.org)",
-      "Bash(docker compose logs:*)",
-      "Bash(uv run pyright:*)",
-      "Bash(npx vitest run:*)",
-      "Bash(npx tsc --noEmit:*)",
-      "Bash(npx playwright:*)"
+      "Bash(docker compose logs*)",
+      "Bash(uv run pyright*)",
+      "Bash(npx vitest run*)",
+      "Bash(npx tsc --noEmit*)",
+      "Bash(npx playwright*)",
+      "WebFetch(domain:registry.npmjs.org)"
     ]
   }
 }
