@@ -8,3 +8,4 @@ postgres_data
 dist/
 test-results/
 .DS_Store
+.playwright-mcp/
