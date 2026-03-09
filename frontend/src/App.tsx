@@ -33,7 +33,7 @@ function App() {
 
   return (
     <ThemeProvider>
-      <main className="max-w-2xl mx-auto px-4 py-8">
+      <main className="max-w-2xl mx-auto py-4 sm:py-8">
         <AppHeader />
         {errorMessage && <ErrorBanner message={errorMessage} />}
         <div className="mt-4">

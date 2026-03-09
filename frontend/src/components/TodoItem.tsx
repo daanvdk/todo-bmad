@@ -49,12 +49,13 @@ export function TodoItem({ todo, onToggle, onDelete }: TodoItemProps) {
           variant="ghost"
           size="icon"
           aria-label="Delete todo"
+          className="hover:text-[var(--destructive)]"
           onClick={(e) => {
             e.stopPropagation();
             onDelete?.(todo.id);
           }}
         >
-          <Trash2 className="h-4 w-4 text-[var(--muted-foreground)] hover:text-[var(--destructive)]" />
+          <Trash2 className="h-4 w-4" />
         </Button>
       }
     />
