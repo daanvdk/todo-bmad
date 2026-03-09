@@ -18,6 +18,11 @@ export interface HTTPValidationError {
   detail?: ValidationError[];
 }
 
+export const HealthResponseValue = {
+  status: 'ok',
+} as const;
+export type HealthResponse = typeof HealthResponseValue;
+
 export interface TodoCreate {
   /**
    * @minLength 1
