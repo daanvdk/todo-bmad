@@ -1,4 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query";
+import { useRef } from "react";
 import type {
   TodoCreate,
   TodoPublic,
@@ -14,7 +15,7 @@ import { makeOptimisticHandlers } from "@/lib/optimisticMutation";
 
 export function useTodoMutations(setError: (msg: string | null) => void) {
   const queryClient = useQueryClient();
-  let nextTempId = -1;
+  const nextTempId = useRef(-1);
 
   const { mutate: createTodo } = useCreateTodo({
     mutation: makeOptimisticHandlers<TodoPublic, { data: TodoCreate }>(
@@ -23,7 +24,7 @@ export function useTodoMutations(setError: (msg: string | null) => void) {
       (items, { data: newTodo }) => [
         ...items,
         {
-          id: nextTempId--,
+          id: nextTempId.current--,
           text: newTodo.text,
           is_completed: false,
           created_at: new Date().toISOString(),
@@ -66,7 +67,7 @@ export function useTodoMutations(setError: (msg: string | null) => void) {
     if (!todo) return;
     updateTodo({
       todoId: id,
-      data: { is_completed: !(todo.is_completed === true) },
+      data: { is_completed: !todo.is_completed },
     });
   };
 

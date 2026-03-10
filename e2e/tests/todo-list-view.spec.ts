@@ -1,31 +1,5 @@
-import { type APIRequestContext, expect, test } from "@playwright/test";
-
-const API_BASE = "http://localhost/api";
-
-async function createTodo(
-  request: APIRequestContext,
-  text: string,
-  isCompleted = false,
-) {
-  const res = await request.post(`${API_BASE}/todos`, {
-    data: { text },
-  });
-  const todo = await res.json();
-  if (isCompleted) {
-    await request.patch(`${API_BASE}/todos/${todo.id}`, {
-      data: { is_completed: true },
-    });
-  }
-  return todo;
-}
-
-async function deleteAllTodos(request: APIRequestContext) {
-  const res = await request.get(`${API_BASE}/todos`);
-  const todos = await res.json();
-  for (const todo of todos) {
-    await request.delete(`${API_BASE}/todos/${todo.id}`);
-  }
-}
+import { expect, test } from "@playwright/test";
+import { createTodo, deleteAllTodos } from "../helpers";
 
 test.beforeEach(async ({ request }) => {
   await deleteAllTodos(request);

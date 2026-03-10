@@ -1,14 +1,5 @@
-import { type APIRequestContext, expect, test } from "@playwright/test";
-
-const API_BASE = "http://localhost/api";
-
-async function deleteAllTodos(request: APIRequestContext) {
-  const res = await request.get(`${API_BASE}/todos`);
-  const todos = await res.json();
-  for (const todo of todos) {
-    await request.delete(`${API_BASE}/todos/${todo.id}`);
-  }
-}
+import { expect, test } from "@playwright/test";
+import { deleteAllTodos } from "../helpers";
 
 test.beforeEach(async ({ request }) => {
   await deleteAllTodos(request);

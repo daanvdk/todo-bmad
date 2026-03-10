@@ -36,6 +36,22 @@ describe("makeOptimisticHandlers", () => {
   }
 
   describe("onMutate", () => {
+    it("leaves cache unchanged when no existing data", async () => {
+      // Use a fresh QueryClient with no seed data
+      const emptyQc = new QueryClient();
+      const handlers = makeOptimisticHandlers<Item, { id: number }>(
+        emptyQc,
+        getQueryKey,
+        (items) => items,
+        vi.fn(),
+      );
+
+      await handlers.onMutate({ id: 1 });
+
+      const cached = emptyQc.getQueryData<{ data: Item[] }>(QUERY_KEY);
+      expect(cached).toBeUndefined();
+    });
+
     it("applies optimistic update to the cache", async () => {
       const handlers = buildHandlers<{ id: number }>((items, { id }) =>
         items.filter((i) => i.id !== id),

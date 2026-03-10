@@ -64,9 +64,9 @@ development_status:
   4-3-docker-compose-health-checks-service-dependencies: done
   epic-4-retrospective: optional
 
-  epic-5: backlog
-  5-1-test-coverage-analysis-improvement: backlog
-  5-2-performance-validation: backlog
+  epic-5: in-progress
+  5-1-test-coverage-analysis-improvement: done
+  5-2-performance-validation: done
   5-3-accessibility-audit: backlog
   5-4-security-review-findings-report: backlog
   epic-5-retrospective: optional

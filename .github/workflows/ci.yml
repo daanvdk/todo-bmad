@@ -24,8 +24,8 @@ jobs:
         run: cd backend && uv run ruff format --check .
       - name: Pyright
         run: cd backend && uv run pyright app/
-      - name: Run pytest
-        run: cd backend && uv run pytest
+      - name: Run tests with coverage
+        run: cd backend && uv run pytest --cov=app --cov-report=term-missing --cov-fail-under=90
 
   frontend-checks:
     runs-on: ubuntu-latest
@@ -41,8 +41,8 @@ jobs:
         run: cd frontend && npm ci
       - name: Biome check
         run: cd frontend && npx biome check .
-      - name: Vitest run
-        run: cd frontend && npx vitest run
+      - name: Run tests with coverage
+        run: cd frontend && npx vitest run --coverage
 
   e2e-checks:
     runs-on: ubuntu-latest
