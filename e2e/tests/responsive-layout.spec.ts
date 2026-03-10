@@ -1,24 +1,10 @@
-import {
-  type APIRequestContext,
-  expect,
-  type Locator,
-  test,
-} from "@playwright/test";
-
-const API_BASE = "http://localhost/api";
+import { expect, type Locator, test } from "@playwright/test";
+import { API_BASE, deleteAllTodos } from "../helpers";
 
 async function getBounds(locator: Locator) {
   const bounds = await locator.boundingBox();
   if (!bounds) throw new Error("Element has no bounding box");
   return bounds;
-}
-
-async function deleteAllTodos(request: APIRequestContext) {
-  const res = await request.get(`${API_BASE}/todos`);
-  const todos = await res.json();
-  for (const todo of todos) {
-    await request.delete(`${API_BASE}/todos/${todo.id}`);
-  }
 }
 
 test.beforeEach(async ({ request }) => {

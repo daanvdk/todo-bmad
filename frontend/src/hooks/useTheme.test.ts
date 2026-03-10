@@ -75,7 +75,7 @@ describe("useTheme", () => {
     expect(result.current.theme).toBe("light");
   });
 
-  it("toggleTheme switches theme and updates localStorage", () => {
+  it("toggleTheme switches light to dark and updates localStorage", () => {
     mockMatchMedia(false); // system prefers light
     const { result } = renderHook(() => useTheme(), {
       wrapper: ThemeProvider,
@@ -86,5 +86,18 @@ describe("useTheme", () => {
     });
     expect(result.current.theme).toBe("dark");
     expect(localStorage.getItem("theme")).toBe("dark");
+  });
+
+  it("toggleTheme switches dark to light and updates localStorage", () => {
+    mockMatchMedia(true); // system prefers dark
+    const { result } = renderHook(() => useTheme(), {
+      wrapper: ThemeProvider,
+    });
+    expect(result.current.theme).toBe("dark");
+    act(() => {
+      result.current.toggleTheme();
+    });
+    expect(result.current.theme).toBe("light");
+    expect(localStorage.getItem("theme")).toBe("light");
   });
 });
