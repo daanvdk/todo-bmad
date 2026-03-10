@@ -40,33 +40,33 @@ tracking_system: file-system
 story_location: "{project-root}/_bmad-output/implementation-artifacts"
 
 development_status:
-  epic-1: in-progress
+  epic-1: done
   1-1-monorepo-scaffold-local-development-stack: done
   1-2-ci-pipeline: done
   epic-1-retrospective: done
 
-  epic-2: in-progress
+  epic-2: done
   2-1-backend-todo-api-database: done
   2-2-todo-list-view: done
   2-3-create-todo: done
   2-4-complete-delete-todo: done
   epic-2-retrospective: done
 
-  epic-3: in-progress
+  epic-3: done
   3-1-loading-error-states: done
   3-2-responsive-layout-mobile-experience: done
   3-3-theme-toggle-accessibility: done
   epic-3-retrospective: done
 
-  epic-4: in-progress
+  epic-4: done
   4-1-non-root-container-users: done
   4-2-backend-health-endpoint: done
   4-3-docker-compose-health-checks-service-dependencies: done
-  epic-4-retrospective: optional
+  epic-4-retrospective: done
 
-  epic-5: in-progress
+  epic-5: done
   5-1-test-coverage-analysis-improvement: done
   5-2-performance-validation: done
   5-3-accessibility-audit: done
   5-4-security-review-findings-report: done
-  epic-5-retrospective: optional
+  epic-5-retrospective: done
